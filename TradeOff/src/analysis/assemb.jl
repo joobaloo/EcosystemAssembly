@@ -6,26 +6,28 @@ using Glob
 # Function to assemble specific communities
 function assemble()
     # Check that sufficient arguments have been provided
-    if length(ARGS) < 2
+    if length(ARGS) < 3
         error("Insufficient inputs provided")
     end
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
+    ims = 0
     # Check that all arguments can be converted to integers
     try
         rps = parse(Int64, ARGS[1])
-        sim_type = parse(Int64, ARGS[2])
+        ims = parse(Int64, ARGS[2])
+        sim_type = parse(Int64, ARGS[3])
     catch e
-        error("need to provide 2 integers")
+        error("need to provide 3 integers")
     end
     # Starting run assumed to be 1
     Rs = 1
     # Check if run to start from has been provided
-    if length(ARGS) > 2
+    if length(ARGS) > 3
         # Check this argument is an integer
         try
-            Rs = parse(Int64, ARGS[3])
+            Rs = parse(Int64, ARGS[4])
         catch e
             error("initial run number must be integer")
         end
@@ -91,7 +93,8 @@ function assemble()
     # Mean immigration time assumed to be 1*10^5 seconds
     mT = 1e5
     # Small number of immigration events for initial testing
-    ims = 500
+    #ims = 500
+
     # Turn off immigration events for no immigration case
     if sim_type == 5
         ims = 0
