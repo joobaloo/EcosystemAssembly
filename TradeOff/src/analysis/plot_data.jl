@@ -130,8 +130,8 @@ function plot_run_averages()
     sim_type = 0
     # Check that all arguments can be converted to integers
     try
-        ims = parse(Int64, ARGS[1])
-        rN = parse(Int64, ARGS[2])
+        rN = parse(Int64, ARGS[1])
+        ims = parse(Int64, ARGS[2])
         sim_type = parse(Int64, ARGS[3])
     catch e
         error("need to provide three integers")
