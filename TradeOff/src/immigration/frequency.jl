@@ -91,12 +91,14 @@ function freq_assemble()
         Ni = 250
     end
 
+    λIm = 100 
+
     # vector of the range of frequencies
     ranges = collect(0:100:1000) 
     for i in 1:ranges
 
         # Time between immigration events
-        mT = max_time/ims
+        mT = sim_length/ims
 
         # Make parameter set
         ps = initialise(M, O, μrange)
