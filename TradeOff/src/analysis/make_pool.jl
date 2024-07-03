@@ -1,5 +1,5 @@
 using TradeOff
-
+export make_spool
 # Function to generate a species pool
 function make_spool()
     # Check that sufficient arguments have been provided
@@ -7,13 +7,15 @@ function make_spool()
         error("Insufficient inputs provided")
     end
     # Preallocate the variables I want to extract from the input
-    Rl = 0
-    Ru = 0
+    #Rl = 0
+    Rl = 1
+    #Ru = 0
+    Ru = 7
     sim_type = 0
     # Check that all arguments can be converted to integers
     try
-        Rl = parse(Int64, ARGS[1])
-        Ru = parse(Int64, ARGS[2])
+        #Rl = parse(Int64, ARGS[1])
+        #Ru = parse(Int64, ARGS[2])
         sim_type = parse(Int64, ARGS[3])
     catch e
         error("need to provide 3 integers")
@@ -31,7 +33,8 @@ function make_spool()
         error("only four simulation types defined")
     end
     # Make desired vector of reactions
-    Rs = collect(Rl:2:Ru)
+    #Rs = collect(Rl:2:Ru)
+    Rs = collect(Rl:Ru)
     # Extract other parameters based on simulation type chosen
     Np, Nt, M, d, μrange = sim_paras(sim_type)
     # Product to substrate ratio for equilibrium (fixing this across all simulations for now)
