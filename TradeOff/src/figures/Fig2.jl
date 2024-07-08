@@ -8,29 +8,30 @@ function early_immigration_dyns(rN::Int64, ims::Int64, sim_type::Int64)
     println("Compiled")
     # Extract other simulation parameters from the function
     Np, Nt, M, d, μrange = sim_paras(sim_type)
+    data_dir = joinpath(
+        pwd(), "Output", "$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
     # Read in appropriate files
-    pfile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Paras$(ims)Ims.jld"
-    if ~isfile(pfile)
+    parameter_file = joinpath(data_dir, "Paras$(ims)Ims.jld")
+    if ~isfile(parameter_file)
         error("$(ims) immigrations run $(rN) is missing a parameter file")
     end
-    ofile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(rN)Data$(ims)Ims.jld"
-    if ~isfile(ofile)
+    output_file = joinpath(data_dir, "Run$(rN)Data$(ims)Ims.jld")
+    if ~isfile(output_file)
         error("$(ims) immigrations run $(rN) is missing an output file")
     end
     # Read in relevant data
-    ps = load(pfile, "ps")
-    traj = load(ofile, "traj")
-    T = load(ofile, "T")
-    micd = load(ofile, "micd")
-    its = load(ofile, "its")
+    ps = load(parameter_file, "ps")
+    traj = load(output_file, "traj")
+    T = load(output_file, "T")
+    micd = load(output_file, "micd")
+    its = load(output_file, "its")
     println("Data read in")
     # Find C from a function
     C = merge_data(ps, traj, T, micd, its)
     println("Data merged")
-    # Check if directory exists and if not make it
-    if ~isdir("Output/Fig2")
-        mkdir("Output/Fig2")
-    end
+    # Define output directory and if necessary make it
+    outdir = joinpath(pwd(), "Output", "Fig2")
+    mkpath(outdir)
     # Find total number of strains
     totN = length(micd)
     # Set maximum time to plot to
@@ -39,15 +40,15 @@ function early_immigration_dyns(rN::Int64, ims::Int64, sim_type::Int64)
     default(dpi = 200)
     # Plot all the populations
     p1 = plot(yaxis = :log10,
-              ylabel = "Population (# cells)",
-              ylims = (1e-5, Inf),
-              xlabel = "Time (s)")
+        ylabel = "Population (# cells)",
+        ylims = (1e-5, Inf),
+        xlabel = "Time (s)")
     for i in 1:totN
         # Find and eliminate zeros so that they can be plotted on a log plot
         inds = (C[:, i] .> 0) .& (T .<= Tmax)
         plot!(p1, T[inds], C[inds, i], label = "")
     end
-    savefig(p1, "Output/Fig2/all_pops.png")
+    savefig(p1, joinpath(outdir, "all_pops.png"))
     return (nothing)
 end
 

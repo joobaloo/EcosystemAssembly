@@ -26,26 +26,28 @@ function figure4(ims::Int64, sim_type::Int64, sim_type2::Int64)
     # Extract other simulation parameters from the function
     Np, Nt, M, d, μrange = sim_paras(sim_type)
     # Find file name to load in
-    sfile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/RunStats$(ims)Ims.jld"
+    data_dir = joinpath(
+        pwd(), "Output", "$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
+    stats_file = joinpath(data_dir, "RunStats$(ims)Ims.jld")
     # Check it actually exists
-    if ~isfile(sfile)
+    if ~isfile(stats_file)
         error("missing stats file for $(ims) immigrations simulations")
     end
     # Now load out the times, and number of trajectories
-    times = load(sfile, "times")
-    no_sims = load(sfile, "no_sims")
-    no_via = load(sfile, "no_via")
-    no_rs = load(sfile, "no_rs")
+    times = load(stats_file, "times")
+    no_sims = load(stats_file, "no_sims")
+    no_via = load(stats_file, "no_via")
+    no_rs = load(stats_file, "no_rs")
     # Load in averages
-    mn_sbs = load(sfile, "mn_sbs")
-    mn_via_R = load(sfile, "mn_via_R")
-    mn_ηs_R = load(sfile, "mn_ηs_R")
-    mn_KS_R = load(sfile, "mn_KS_R")
+    mn_sbs = load(stats_file, "mn_sbs")
+    mn_via_R = load(stats_file, "mn_via_R")
+    mn_ηs_R = load(stats_file, "mn_ηs_R")
+    mn_KS_R = load(stats_file, "mn_KS_R")
     # Load in standard deviations
-    sd_sbs = load(sfile, "sd_sbs")
-    sd_via_R = load(sfile, "sd_via_R")
-    sd_ηs_R = load(sfile, "sd_ηs_R")
-    sd_KS_R = load(sfile, "sd_KS_R")
+    sd_sbs = load(stats_file, "sd_sbs")
+    sd_via_R = load(stats_file, "sd_via_R")
+    sd_ηs_R = load(stats_file, "sd_ηs_R")
+    sd_KS_R = load(stats_file, "sd_KS_R")
     # Preallocate standard errors
     se_via_R = zeros(size(sd_via_R))
     se_ηs_R = zeros(size(sd_ηs_R))
@@ -73,21 +75,20 @@ function figure4(ims::Int64, sim_type::Int64, sim_type2::Int64)
         end
     end
     println("Data read in")
-    # Check if directory exists and if not make it
-    if ~isdir("Output/Fig4")
-        mkdir("Output/Fig4")
-    end
+    # Define output directory and if necessary make it
+    outdir = joinpath(pwd(), "Output", "Fig4")
+    mkpath(outdir)
     # Set default plotting options
     default(dpi = 200)
     # Load in colour scheme
     a = ColorSchemes.sunset.colors
     # Plot basic trade-off first
     p1 = plot(xlabel = "Time (s)",
-              ylabel = "Number of species",
-              xlim = (-Inf, 5e7),
-              title = "High substrate free-energy case",
-              legend = :bottomright,
-              ylim = (0.0, 8.0))
+        ylabel = "Number of species",
+        xlim = (-Inf, 5e7),
+        title = "High substrate free-energy case",
+        legend = :bottomright,
+        ylim = (0.0, 8.0))
     plot!(p1, times, mn_via_R[1, :], ribbon = se_via_R[1, :], label = "R=1", color = a[1])
     plot!(p1, times, mn_via_R[3, :], ribbon = se_via_R[3, :], label = "R=3", color = a[2])
     plot!(p1, times, mn_via_R[5, :], ribbon = se_via_R[5, :], label = "R=5", color = a[3])
@@ -95,48 +96,48 @@ function figure4(ims::Int64, sim_type::Int64, sim_type2::Int64)
     # Add annotation
     px, py = annpos([0.0; 5e7], [0.0; 8.0], 0.075, 0.05)
     annotate!(p1, px, py, text("A", 17, :black))
-    savefig(p1, "Output/Fig4/AvViaReacsTime.png")
+    savefig(p1, joinpath(outdir, "AvViaReacsTime.png"))
     # Now do probability plot
     p2 = plot(xlabel = "Time (s)",
-              ylabel = "Probability of no usable substrate",
-              xlim = (-Inf, 5e7),
-              title = "Chance of species finding no usable substrates",
-              legend = false)
+        ylabel = "Probability of no usable substrate",
+        xlim = (-Inf, 5e7),
+        title = "Chance of species finding no usable substrates",
+        legend = false)
     plot!(p2,
-          times,
-          1 .- mn_Ps[1, :],
-          ribbon = (up_Ps[1, :], dw_Ps[1, :]),
-          label = "R=1",
-          color = a[1])
+        times,
+        1 .- mn_Ps[1, :],
+        ribbon = (up_Ps[1, :], dw_Ps[1, :]),
+        label = "R=1",
+        color = a[1])
     plot!(p2,
-          times,
-          1 .- mn_Ps[3, :],
-          ribbon = (up_Ps[3, :], dw_Ps[3, :]),
-          label = "R=3",
-          color = a[2])
+        times,
+        1 .- mn_Ps[3, :],
+        ribbon = (up_Ps[3, :], dw_Ps[3, :]),
+        label = "R=3",
+        color = a[2])
     plot!(p2,
-          times,
-          1 .- mn_Ps[5, :],
-          ribbon = (up_Ps[5, :], dw_Ps[5, :]),
-          label = "R=5",
-          color = a[3])
+        times,
+        1 .- mn_Ps[5, :],
+        ribbon = (up_Ps[5, :], dw_Ps[5, :]),
+        label = "R=5",
+        color = a[3])
     plot!(p2,
-          times,
-          1 .- mn_Ps[7, :],
-          ribbon = (up_Ps[7, :], dw_Ps[7, :]),
-          label = "R=7",
-          color = a[4])
+        times,
+        1 .- mn_Ps[7, :],
+        ribbon = (up_Ps[7, :], dw_Ps[7, :]),
+        label = "R=7",
+        color = a[4])
     # Add annotation
     px, py = annpos([0.0; 5e7], [0.0; 1.0375], 0.075, 0.05)
     annotate!(p2, px, py, text("B", 17, :black))
-    savefig(p2, "Output/Fig4/ProbSubTime.png")
+    savefig(p2, joinpath(data_dir, "ProbSubTime.png"))
     # Plot trade-off for η
     p3 = plot(xlabel = "Time (s)",
-              ylabel = "Average eta value",
-              xlim = (-Inf, 5e7),
-              title = "Variation of key parameters",
-              legend = false,
-              ylim = (0.0, 7.5))
+        ylabel = "Average eta value",
+        xlim = (-Inf, 5e7),
+        title = "Variation of key parameters",
+        legend = false,
+        ylim = (0.0, 7.5))
     plot!(p3, times, mn_ηs_R[1, :], ribbon = se_ηs_R[1, :], label = "R=1", color = a[1])
     plot!(p3, times, mn_ηs_R[3, :], ribbon = se_ηs_R[3, :], label = "R=3", color = a[2])
     plot!(p3, times, mn_ηs_R[5, :], ribbon = se_ηs_R[5, :], label = "R=5", color = a[3])
@@ -151,56 +152,56 @@ function figure4(ims::Int64, sim_type::Int64, sim_type2::Int64)
     em3 = L"10^{-3}"
     # Plot other trade-off into the inset
     plot!(p3,
-          times / 1e7,
-          mn_KS_R[1, :] * 1000.0,
-          ribbon = se_KS_R[1, :] * 1000.0,
-          color = a[1],
-          label = "",
-          inset_subplots = box,
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[1, :] * 1000.0,
+        ribbon = se_KS_R[1, :] * 1000.0,
+        color = a[1],
+        label = "",
+        inset_subplots = box,
+        subplot = 2)
     plot!(p3,
-          times / 1e7,
-          mn_KS_R[3, :] * 1000.0,
-          ribbon = se_KS_R[3, :] * 1000.0,
-          color = a[2],
-          label = "",
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[3, :] * 1000.0,
+        ribbon = se_KS_R[3, :] * 1000.0,
+        color = a[2],
+        label = "",
+        subplot = 2)
     plot!(p3,
-          times / 1e7,
-          mn_KS_R[5, :] * 1000.0,
-          ribbon = se_KS_R[5, :] * 1000.0,
-          color = a[3],
-          label = "",
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[5, :] * 1000.0,
+        ribbon = se_KS_R[5, :] * 1000.0,
+        color = a[3],
+        label = "",
+        subplot = 2)
     plot!(p3,
-          times / 1e7,
-          mn_KS_R[7, :] * 1000.0,
-          ribbon = se_KS_R[7, :] * 1000.0,
-          color = a[4],
-          label = "",
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[7, :] * 1000.0,
+        ribbon = se_KS_R[7, :] * 1000.0,
+        color = a[4],
+        label = "",
+        subplot = 2)
     plot!(p3,
-          xlabel = "Time ($(e7) s)",
-          ylabel = "$(Ks) ($em3)",
-          xlim = (-Inf, 5.0),
-          grid = false,
-          subplot = 2)
-    savefig(p3, "Output/Fig4/AvEtaperReacTime.png")
+        xlabel = "Time ($(e7) s)",
+        ylabel = "$(Ks) ($em3)",
+        xlim = (-Inf, 5.0),
+        grid = false,
+        subplot = 2)
+    savefig(p3, joinpath(data_dir, "AvEtaperReacTime.png"))
     # Extract simulation parameters for the other case from the function
     Np, Nt, M, d, μrange = sim_paras(sim_type2)
     # Find file name to load in
-    sfile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/RunStats$(ims)Ims.jld"
+    stats_file_2 = joinpath(data_dir, "RunStats$(ims)Ims.jld")
     # Check it actually exists
-    if ~isfile(sfile)
+    if ~isfile(stats_file_2)
         error("missing stats file for $(ims) immigrations simulations")
     end
     # Now load out the times, and number of trajectories
-    times = load(sfile, "times")
-    no_via = load(sfile, "no_via")
+    times = load(stats_file_2, "times")
+    no_via = load(stats_file_2, "no_via")
     # Load in averages
-    mn_via_R = load(sfile, "mn_via_R")
+    mn_via_R = load(stats_file_2, "mn_via_R")
     # Load in standard deviations
-    sd_via_R = load(sfile, "sd_via_R")
+    sd_via_R = load(stats_file_2, "sd_via_R")
     # Preallocate standard errors
     se_via_R = zeros(size(sd_via_R))
     # Calculation (slightly) different in the viable case
@@ -208,11 +209,11 @@ function figure4(ims::Int64, sim_type::Int64, sim_type2::Int64)
         se_via_R[i, :] = sd_via_R[i, :] ./ sqrt.(no_via)
     end
     p4 = plot(xlabel = "Time (s)",
-              ylabel = "Number of species",
-              xlim = (-Inf, 5e7),
-              title = "Low substrate free-energy case",
-              legend = false,
-              ylim = (0.0, 5.0))
+        ylabel = "Number of species",
+        xlim = (-Inf, 5e7),
+        title = "Low substrate free-energy case",
+        legend = false,
+        ylim = (0.0, 5.0))
     plot!(p4, times, mn_via_R[1, :], ribbon = se_via_R[1, :], label = "R=1", color = a[1])
     plot!(p4, times, mn_via_R[3, :], ribbon = se_via_R[3, :], label = "R=3", color = a[2])
     plot!(p4, times, mn_via_R[5, :], ribbon = se_via_R[5, :], label = "R=5", color = a[3])
@@ -220,10 +221,10 @@ function figure4(ims::Int64, sim_type::Int64, sim_type2::Int64)
     # Add annotation
     px, py = annpos([0.0; 5e7], [0.0; 5.0], 0.075, 0.05)
     annotate!(p4, px, py, text("D", 17, :black))
-    savefig(p4, "Output/Fig4/LowFreeEnergy.png")
+    savefig(p4, joinpath(outdir, "LowFreeEnergy.png"))
     # Plot all graphs as a single figure
     pt = plot(p1, p3, p2, p4, layout = 4, size = (1200, 800), margin = 5.0mm)
-    savefig(pt, "Output/Fig4/figure4.png")
+    savefig(pt, joinpath(outdir, "figure4.png"))
     return (nothing)
 end
 

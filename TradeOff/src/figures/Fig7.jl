@@ -30,24 +30,26 @@ function figure7()
     tk = "NoImm"
     # Extract other simulation parameters from the function
     Np, Nt, M, d, μrange = sim_paras(sim_type)
+    data_dir = joinpath(
+        pwd(), "Output", "$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
     # Find file name to load in
-    sfile = "Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/RunStats$(ims)Ims.jld"
+    stats_file = joinpath(data_dir, "RunStats$(ims)Ims.jld")
     # Check it actually exists
-    if ~isfile(sfile)
+    if ~isfile(stats_file)
         error("missing stats file for $(ims) immigrations simulations")
     end
     # Now load out the times, and number of trajectories
-    times = load(sfile, "times")
-    no_sims = load(sfile, "no_sims")
-    no_via = load(sfile, "no_via")
+    times = load(stats_file, "times")
+    no_sims = load(stats_file, "no_sims")
+    no_via = load(stats_file, "no_via")
     # Load in averages
-    mn_sbs = load(sfile, "mn_sbs")
-    mn_via_R = load(sfile, "mn_via_R")
-    mn_KS_R = load(sfile, "mn_KS_R")
+    mn_sbs = load(stats_file, "mn_sbs")
+    mn_via_R = load(stats_file, "mn_via_R")
+    mn_KS_R = load(stats_file, "mn_KS_R")
     # Load in standard deviations
-    sd_sbs = load(sfile, "sd_sbs")
-    sd_via_R = load(sfile, "sd_via_R")
-    sd_KS_R = load(sfile, "sd_KS_R")
+    sd_sbs = load(stats_file, "sd_sbs")
+    sd_via_R = load(stats_file, "sd_via_R")
+    sd_KS_R = load(stats_file, "sd_KS_R")
     # Preallocate standard errors
     se_via_R = zeros(size(sd_via_R))
     se_KS_R = zeros(size(sd_KS_R))
@@ -73,10 +75,9 @@ function figure7()
         end
     end
     println("Data read in")
-    # Check if directory exists and if not make it
-    if ~isdir("Output/Fig7")
-        mkdir("Output/Fig7")
-    end
+    # Define output directory and if necessary make it
+    outdir = joinpath(pwd(), "Output", "Fig7")
+    mkpath(outdir)
     # Set default plotting options
     default(dpi = 200)
     # Load in colour scheme
@@ -84,9 +85,9 @@ function figure7()
     # Plot basic trade-off first
     p1 = plot(xlabel = "Time (s)", ylabel = "Number of species", xlim = (-Inf, 2.5e6))
     plot!(p1,
-          title = "Number of reactions with time",
-          legend = :bottomright,
-          ylim = (0.0, 5.0))
+        title = "Number of reactions with time",
+        legend = :bottomright,
+        ylim = (0.0, 5.0))
     plot!(p1, times, mn_via_R[1, :], ribbon = se_via_R[1, :], label = "R=1", color = a[1])
     plot!(p1, times, mn_via_R[3, :], ribbon = se_via_R[3, :], label = "R=3", color = a[2])
     plot!(p1, times, mn_via_R[5, :], ribbon = se_via_R[5, :], label = "R=5", color = a[3])
@@ -94,84 +95,84 @@ function figure7()
     # Add annotation
     px, py = annpos([0.0; 2.5e6], [0.0; 5.0], 0.075, 0.05)
     annotate!(p1, px, py, text("A", 17, :black))
-    savefig(p1, "Output/Fig7/AvViaReacsTime.png")
+    savefig(p1, joinpath(outdir, "AvViaReacsTime.png"))
     # Now do probability plot
     p2 = plot(xlabel = "Time (s)",
-              ylabel = "Probability of no usable substrate",
-              xlim = (-Inf, 2.5e6),
-              title = "Chance of species finding no usable substrates",
-              legend = false,
-              times,
-              1 .- mn_Ps[1, :],
-              ribbon = (up_Ps[1, :], dw_Ps[1, :]),
-              label = "R=1",
-              color = a[1])
+        ylabel = "Probability of no usable substrate",
+        xlim = (-Inf, 2.5e6),
+        title = "Chance of species finding no usable substrates",
+        legend = false,
+        times,
+        1 .- mn_Ps[1, :],
+        ribbon = (up_Ps[1, :], dw_Ps[1, :]),
+        label = "R=1",
+        color = a[1])
     plot!(p2,
-          times,
-          1 .- mn_Ps[3, :],
-          ribbon = (up_Ps[3, :], dw_Ps[3, :]),
-          label = "R=3",
-          color = a[2])
+        times,
+        1 .- mn_Ps[3, :],
+        ribbon = (up_Ps[3, :], dw_Ps[3, :]),
+        label = "R=3",
+        color = a[2])
     plot!(p2,
-          times,
-          1 .- mn_Ps[5, :],
-          ribbon = (up_Ps[5, :], dw_Ps[5, :]),
-          label = "R=5",
-          color = a[3])
+        times,
+        1 .- mn_Ps[5, :],
+        ribbon = (up_Ps[5, :], dw_Ps[5, :]),
+        label = "R=5",
+        color = a[3])
     plot!(p2,
-          times,
-          1 .- mn_Ps[7, :],
-          ribbon = (up_Ps[7, :], dw_Ps[7, :]),
-          label = "R=7",
-          color = a[4])
+        times,
+        1 .- mn_Ps[7, :],
+        ribbon = (up_Ps[7, :], dw_Ps[7, :]),
+        label = "R=7",
+        color = a[4])
     # Define box for inset here
     box = (1, bbox(0.5, 0.5, 0.45, 0.3375, :bottom, :left))
     Ks = L"K_S"
     e7 = L"10^7"
     em3 = L"10^{-3}"
     plot!(p2,
-          times / 1e7,
-          mn_KS_R[1, :] * 1000.0,
-          ribbon = se_KS_R[1, :] * 1000.0,
-          label = "R=1",
-          color = a[1],
-          inset_subplots = box,
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[1, :] * 1000.0,
+        ribbon = se_KS_R[1, :] * 1000.0,
+        label = "R=1",
+        color = a[1],
+        inset_subplots = box,
+        subplot = 2)
     plot!(p2,
-          times / 1e7,
-          mn_KS_R[3, :] * 1000.0,
-          ribbon = se_KS_R[3, :] * 1000.0,
-          label = "R=3",
-          color = a[2],
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[3, :] * 1000.0,
+        ribbon = se_KS_R[3, :] * 1000.0,
+        label = "R=3",
+        color = a[2],
+        subplot = 2)
     plot!(p2,
-          times / 1e7,
-          mn_KS_R[5, :] * 1000.0,
-          ribbon = se_KS_R[5, :] * 1000.0,
-          label = "R=5",
-          color = a[3],
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[5, :] * 1000.0,
+        ribbon = se_KS_R[5, :] * 1000.0,
+        label = "R=5",
+        color = a[3],
+        subplot = 2)
     plot!(p2,
-          times / 1e7,
-          mn_KS_R[7, :] * 1000.0,
-          ribbon = se_KS_R[7, :] * 1000.0,
-          label = "R=7",
-          color = a[4],
-          subplot = 2)
+        times / 1e7,
+        mn_KS_R[7, :] * 1000.0,
+        ribbon = se_KS_R[7, :] * 1000.0,
+        label = "R=7",
+        color = a[4],
+        subplot = 2)
     plot!(p2,
-          xlim = (-Inf, 0.25),
-          guidefontsize = 9,
-          grid = false,
-          legend = false,
-          subplot = 2)
+        xlim = (-Inf, 0.25),
+        guidefontsize = 9,
+        grid = false,
+        legend = false,
+        subplot = 2)
     plot!(p2, xlabel = "Time ($(e7) s)", ylabel = "$(Ks) ($em3)", subplot = 2)
     # Add annotation
     px, py = annpos([0.0; 2.5e6], [0.0; 1.1], 0.075, 0.05)
     annotate!(p2, px, py, text("B", 17, :black))
-    savefig(p2, "Output/Fig7/ProbSubTime.png")
+    savefig(p2, joinpath(outdir, "ProbSubTime.png"))
     # Plot all graphs as a single figure
     pt = plot(p1, p2, layout = (2, 1), size = (600, 800), margin = 5.0mm)
-    savefig(pt, "Output/Fig7/figure7.png")
+    savefig(pt, joinpath(outdir, "figure7.png"))
     return (nothing)
 end
 

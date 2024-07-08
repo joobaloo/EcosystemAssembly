@@ -32,17 +32,16 @@ function efficency_plot()
     end
     # Set default plotting options
     default(dpi = 200, guidefontsize = 18, tickfontsize = 10)
-    # Check if directory exists and if not make it
-    if ~isdir("Output/Fig1")
-        mkdir("Output/Fig1")
-    end
+    # Define output directory and if necessary make it
+    outdir = joinpath(pwd(), "Output", "Fig1")
+    mkpath(outdir)
     # Define latex label
     m1 = L"^{-1}"
     # Plot the two things
     p1 = plot(max_λ, effs, label = false, ylims = (0, Inf),
-              xlabel = "Max growth rate (s$(m1))", linewidth = 2.5,
-              ylabel = "Efficiency (aa ATP$(m1))")
-    savefig(p1, "Output/Fig1/efficiency.png")
+        xlabel = "Max growth rate (s$(m1))", linewidth = 2.5,
+        ylabel = "Efficiency (aa ATP$(m1))")
+    savefig(p1, joinpath(outdir, "efficiency.png"))
     return (nothing)
 end
 

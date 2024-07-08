@@ -31,29 +31,31 @@ function plot_traj()
     if sim_type == 5
         tk = "NoImm"
     end
+    # Define data directory to read from
+    data_dir = joinpath(
+        pwd(), "Output", "$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
     # Read in appropriate files
-    pfile = "Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Paras$(ims)Ims.jld"
-    if ~isfile(pfile)
+    parameter_file = joinpath(data_dir, "Paras$(ims)Ims.jld")
+    if ~isfile(parameter_file)
         error("$(ims) immigrations run $(rN) is missing a parameter file")
     end
-    ofile = "Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(rN)Data$(ims)Ims.jld"
-    if ~isfile(ofile)
+    output_file = joinpath(data_dir, "Run$(rN)Data$(ims)Ims.jld")
+    if ~isfile(output_file)
         error("$(ims) immigrations run $(rN) is missing an output file")
     end
     # Read in relevant data
-    ps = load(pfile, "ps")
-    traj = load(ofile, "traj")
-    T = load(ofile, "T")
-    micd = load(ofile, "micd")
-    its = load(ofile, "its")
+    ps = load(parameter_file, "ps")
+    traj = load(output_file, "traj")
+    T = load(output_file, "T")
+    micd = load(output_file, "micd")
+    its = load(output_file, "its")
     println("Data read in")
     # Find C from a function
     C = merge_data(ps, traj, T, micd, its)
     println("Data merged")
-    # Check if directory exists and if not make it
-    if ~isdir("Output/$(tk)Plotsd=$(d)u=$(μrange)")
-        mkdir("Output/$(tk)Plotsd=$(d)u=$(μrange)")
-    end
+    # Define and (if necessary create) the directory for the plots
+    plot_dir = joinpath(pwd(), "Output", "$(tk)Plotsd=$(d)u=$(μrange)")
+    mkpath(plot_dir)
     # Find total number of strains
     totN = length(micd)
     # Find indices of extinct strains
@@ -68,7 +70,7 @@ function plot_traj()
         inds = (C[:, i] .> 0)
         plot!(p1, T[inds], C[inds, i], label = "")
     end
-    savefig(p1, "Output/$(tk)Plotsd=$(d)u=$(μrange)/all_pops.png")
+    savefig(p1, joinpath(plot_dir, "all_pops.png"))
     # Plot all the concentrations
     p2 = plot(yaxis = :log10, ylabel = "Concentration")#,ylims=(1e-15,Inf))
     for i in 1:(ps.M)
@@ -76,19 +78,19 @@ function plot_traj()
         inds = (C[:, totN + i] .> 0)
         plot!(p2, T[inds], C[inds, totN + i], label = "")
     end
-    savefig(p2, "Output/$(tk)Plotsd=$(d)u=$(μrange)/all_concs.png")
+    savefig(p2, joinpath(plot_dir, "all_concs.png"))
     # Plot all the energy concentrations
     p3 = plot(ylabel = "Energy Concentration")
     for i in 1:totN
         plot!(p3, T, C[:, totN + ps.M + i], label = "")
     end
-    savefig(p3, "Output/$(tk)Plotsd=$(d)u=$(μrange)/all_as.png")
+    savefig(p3, joinpath(plot_dir, "all_as.png"))
     # Plot all the ribosome fractions
     p4 = plot(ylabel = "Ribosome fraction")
     for i in 1:totN
         plot!(p4, T, C[:, 2 * totN + ps.M + i], label = "")
     end
-    savefig(p4, "Output/$(tk)Plotsd=$(d)u=$(μrange)/all_fracs.png")
+    savefig(p4, joinpath(plot_dir, "all_fracs.png"))
     # Plot populations that survive to the end
     p1 = plot(yaxis = :log10, ylabel = "Population (# cells)", ylims = (1e-5, Inf))
     for i in 1:totN
@@ -98,7 +100,7 @@ function plot_traj()
             plot!(p1, T[inds], C[inds, i], label = "")
         end
     end
-    savefig(p1, "Output/$(tk)Plotsd=$(d)u=$(μrange)/surv_pops.png")
+    savefig(p1, joinpath(plot_dir, "surv_pops.png"))
     # Plot energy concentrations of populations that survive to the end
     p3 = plot(ylabel = "Energy Concentration")
     for i in 1:totN
@@ -106,7 +108,7 @@ function plot_traj()
             plot!(p3, T, C[:, totN + ps.M + i], label = "")
         end
     end
-    savefig(p3, "Output/$(tk)Plotsd=$(d)u=$(μrange)/surv_as.png")
+    savefig(p3, joinpath(plot_dir, "surv_as.png"))
     # Plot ribosome fractions of populations that survive to the end
     p4 = plot(ylabel = "Ribosome fraction")
     for i in 1:totN
@@ -114,7 +116,7 @@ function plot_traj()
             plot!(p4, T, C[:, 2 * totN + ps.M + i], label = "")
         end
     end
-    savefig(p4, "Output/$(tk)Plotsd=$(d)u=$(μrange)/surv_fracs.png")
+    savefig(p4, joinpath(plot_dir, "surv_fracs.png"))
     return (nothing)
 end
 
@@ -139,30 +141,27 @@ function plot_run_averages()
     println("Compiled")
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = sim_paras(sim_type)
-    # Read in appropriate files
-    pfile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Paras$(ims)Ims.jld"
-    if ~isfile(pfile)
-        error("$(ims) immigrations run $(rN) is missing a parameter file")
-    end
-    ofile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/AvRun$(rN)Data$(ims)Ims.jld"
-    if ~isfile(ofile)
+    output_dir = joinpath(pwd(), "Output")
+    averages_file = joinpath(
+        output_dir, "$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)",
+        "AvRun$(rN)Data$(ims)Ims.jld")
+    if ~isfile(averages_file)
         error("$(ims) immigrations run $(rN) is missing an output file")
     end
     # Read in relevant data
-    ps = load(pfile, "ps")
-    T = load(ofile, "T")
-    svt = load(ofile, "surviving_species")
-    tsvt = load(ofile, "viable_species")
-    ηs = load(ofile, "average_η")
+    T = load(averages_file, "T")
+    svt = load(averages_file, "surviving_species")
+    tsvt = load(averages_file, "viable_species")
+    ηs = load(averages_file, "average_η")
     # Setup plotting
     pyplot(dpi = 200)
     # Plot this data
     plot(T, svt, label = "", xlabel = "Time (s)", ylabel = "Number of survivors")
-    savefig("Output/SvTime.png")
+    savefig(joinpath(output_dir, "SvTime.png"))
     plot(T, ηs, label = "", xlabel = "Time (s)", ylabel = "eta")
-    savefig("Output/EtaTime.png")
+    savefig(joinpath(output_dir, "EtaTime.png"))
     plot(T, tsvt, label = "", xlabel = "Time (s)", ylabel = "Number of viable strains")
-    savefig("Output/ViaTime.png")
+    savefig(joinpath(output_dir, "ViaTime.png"))
     return (nothing)
 end
 
