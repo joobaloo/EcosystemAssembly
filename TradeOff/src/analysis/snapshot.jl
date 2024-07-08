@@ -24,24 +24,27 @@ function snp_shot()
     flush(stdout)
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = sim_paras(sim_type)
+    # Define data directory
+    data_dir = joinpath(
+        pwd(), "Output", "$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
     # Read in parameter file
-    pfile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Paras$(ims)Ims.jld"
-    if ~isfile(pfile)
+    parameter_file = joinpath(data_dir, "Paras$(ims)Ims.jld")
+    if ~isfile(parameter_file)
         error("$(ims) immigrations is missing a parameter file")
     end
     # Load parameters
-    ps = load(pfile, "ps")
+    ps = load(parameter_file, "ps")
     # Preallocate vector to store final times
     Tfs = zeros(rps)
     # Loop over number of repeats to find maximum times
     for i in 1:rps
         # Load in relevant output file
-        ofile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(i)Data$(ims)Ims.jld"
-        if ~isfile(ofile)
+        output_file = joinpath(data_dir, "Run$(i)Data$(ims)Ims.jld")
+        if ~isfile(output_file)
             error("$(ims) immigrations run $(i) is missing an output file")
         end
         # Load in microbe data, and immigration times
-        T = load(ofile, "T")
+        T = load(output_file, "T")
         # Store final T value
         Tfs[i] = T[end]
     end
@@ -69,15 +72,15 @@ function snp_shot()
     # Loop over number of repeats
     for i in 1:rps
         # Load in relevant output file
-        ofile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(i)Data$(ims)Ims.jld"
-        if ~isfile(ofile)
+        output_file = joinpath(data_dir, "Run$(i)Data$(ims)Ims.jld")
+        if ~isfile(output_file)
             error("$(ims) immigrations run $(i) is missing an output file")
         end
         # Load in microbe data, and immigration times
-        T = load(ofile, "T")
-        traj = load(ofile, "traj")
-        micd = load(ofile, "micd")
-        its = load(ofile, "its")
+        T = load(output_file, "T")
+        traj = load(output_file, "traj")
+        micd = load(output_file, "micd")
+        its = load(output_file, "its")
         # Use to construct full trajectory C
         C = merge_data(ps, traj, T, micd, its)
         # Find and save initial population value for this run
@@ -91,7 +94,8 @@ function snp_shot()
                 # Add new pool ID in
                 pls = cat(pls, micd[j].PID, dims = 1)
                 # Find name of pool
-                file = "Pools/ID=$(micd[j].PID)N=$(Nt)M=$(ps.M)d=$(d)u=$(μrange).jld"
+                file = joinpath(pwd(), "Pools",
+                    "ID=$(micd[j].PID)N=$(Nt)M=$(ps.M)d=$(d)u=$(μrange).jld")
                 # Check if this is the first pool
                 if length(pls) == 1
                     # If so save the pool
@@ -177,8 +181,7 @@ function snp_shot()
         flush(stdout)
     end
     # Now just save the relevant data
-    jldopen("Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/SnapData$(ims)Ims.jld",
-            "w") do file
+    jldopen(joinpath(data_dir, "SnapData$(ims)Ims.jld"), "w") do file
         # Save times of snapshots
         write(file, "times", snps)
         # Save whatever I generate here

@@ -43,13 +43,15 @@ function v_over_t()
     if sim_type == 5
         tk = "NoImm"
     end
+    data_dir = joinpath(
+        pwd(), "Output", "$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
     # Read in parameter file
-    pfile = "Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Paras$(ims)Ims.jld"
-    if ~isfile(pfile)
+    parameter_file = joinpath(data_dir, "Paras$(ims)Ims.jld")
+    if ~isfile(parameter_file)
         error("$(ims) immigrations is missing a parameter file")
     end
     # Load parameters
-    ps = load(pfile, "ps")
+    ps = load(parameter_file, "ps")
     # List of pools already loaded in
     pls = []
     # Array of array to store pools
@@ -59,15 +61,15 @@ function v_over_t()
     # Loop over number of repeats
     for i in 1:rps
         # Load in relevant output file
-        ofile = "Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(i)Data$(ims)Ims.jld"
-        if ~isfile(ofile)
+        output_file = joinpath(data_dir, "Run$(i)Data$(ims)Ims.jld")
+        if ~isfile(output_file)
             error("$(ims) immigrations run $(rN) is missing an output file")
         end
         # Load in microbe data, and immigration times
-        T = load(ofile, "T")
-        traj = load(ofile, "traj")
-        micd = load(ofile, "micd")
-        its = load(ofile, "its")
+        T = load(output_file, "T")
+        traj = load(output_file, "traj")
+        micd = load(output_file, "micd")
+        its = load(output_file, "its")
         # Use to construct full trajectory C
         C = merge_data(ps, traj, T, micd, its)
         # Preallocate vector of microbes
@@ -79,16 +81,17 @@ function v_over_t()
                 # Add new pool ID in
                 pls = cat(pls, micd[j].PID, dims = 1)
                 # Find name of pool
-                file = "Pools/ID=$(micd[j].PID)N=$(Nt)M=$(ps.M)d=$(d)u=$(μrange).jld"
+                pool_file = joinpath(pwd(), "Pools",
+                    "ID=$(micd[j].PID)N=$(Nt)M=$(ps.M)d=$(d)u=$(μrange).jld")
                 # Check if this is the first pool
                 if length(pls) == 1
                     # If so save the pool
-                    pools[1] = load(file, "mics")
+                    pools[1] = load(pool_file, "mics")
                     # Find number of reactions based on this
                     NoR = maximum(pools[1] .↦ :R)
                 else
                     # Otherwise just cat it on existing vector
-                    pool = load(file, "mics")
+                    pool = load(pool_file, "mics")
                     pools = cat(pools, pool, dims = 1)
                     # Find maximum number of reactions for this pool
                     NoRt = maximum(pools[1] .↦ :R)
@@ -139,13 +142,12 @@ function v_over_t()
             viable_species[j] = length(vinds)
             # Then also number of substrates (skipping final waste product)
             no_substrates[j] = count(x -> x > 1e-12,
-                                     C[j, (total_species + 1):(total_species + ps.M - 1)])
+                C[j, (total_species + 1):(total_species + ps.M - 1)])
             # Loop over number of reactions
             for k in 1:NoR
                 # Count number of strains with reaction for each case
                 species_per_reac_class[k, j] = count(x -> x == k, ms[inds] .↦ :R)
-                viable_species_per_reac_class[k, j] = count(x -> x == k,
-                                                            ms[vinds] .↦ :R)
+                viable_species_per_reac_class[k, j] = count(x -> x == k, ms[vinds] .↦ :R)
             end
             # Set up counters for the number of species with each reaction gap
             c = zeros(M - 1)
@@ -203,8 +205,7 @@ function v_over_t()
             final_ϕR[j] = C[end, ϕ_i[inds[j]]]
         end
         # Now just save the relevant data
-        jldopen("Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/AvRun$(i)Data$(ims)Ims.jld",
-                "w") do file
+        jldopen(joinpath(data_dir, "AvRun$(i)Data$(ims)Ims.jld"), "w") do file
             # Save full time course
             write(file, "T", T)
             # Save reaction data

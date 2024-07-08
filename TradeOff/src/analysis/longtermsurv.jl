@@ -26,15 +26,18 @@ function long_term_surv()
     flush(stdout)
     # Preallocate survival times
     sTs = Float64[]
+    # Set data directory
+    data_dir = joinpath(
+        pwd(), "Output", "$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
     # Loop over number of repeats
     for i in 1:rps
         # Load in relevant output file
-        ofile = "Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(i)Data$(ims)Ims.jld"
-        if ~isfile(ofile)
+        filepath = joinpath(data_dir, "Run$(i)Data$(ims)Ims.jld")
+        if ~isfile(filepath)
             error("$(ims) immigrations run $(rN) is missing an output file")
         end
         # Load in microbe data
-        micd = load(ofile, "micd")
+        micd = load(filepath, "micd")
         # Find indices of species that survive to the end
         inds = findall(isnan, micd .↦ :ExT)
         # Add the immigration times of these species to the vector
@@ -42,8 +45,7 @@ function long_term_surv()
     end
     # Once all this has been calculated save ``survival'' times as a new datafiles
     # Now want to save means and standard deviations
-    jldopen("Output/$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/SurvTimes$(ims)Ims.jld",
-            "w") do file
+    jldopen(joinpath(data_dir, "SurvTimes$(ims)Ims.jld"), "w") do file
         # Save times
         write(file, "sTs", sTs)
     end

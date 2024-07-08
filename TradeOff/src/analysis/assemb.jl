@@ -57,7 +57,8 @@ function assemble()
     # Loop over number of required pools
     for i in 1:Np
         # Find all pools satisfying the condition
-        flnms = glob("Pools/ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld")
+        pool_dir = joinpath(pwd(), "Pools")
+        flnms = glob("ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld", pool_dir)
         # Loop over valid filenames
         for j in eachindex(flnms)
             # Save first that hasn't already been used
@@ -111,12 +112,11 @@ function assemble()
         tk = "NoImm"
     end
     # Check if directory exists and if not make it
-    if ~isdir("Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
-        mkdir("Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
-    end
+    data_dir = joinpath(
+        pwd(), "Output", "$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
+    mkpath(data_dir)
     # Save this parameter set
-    jldopen("Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Paras$(ims)Ims.jld",
-            "w") do file
+    jldopen(joinpath(data_dir, "Paras$(ims)Ims.jld"), "w") do file
         write(file, "ps", ps)
     end
     # ONLY LOADING ONE POOL AT THE MOMENT, THIS PROBABLY HAS TO CHANGE
@@ -134,8 +134,7 @@ function assemble()
         tf = time()
         println("Time elapsed on run $i: $(tf-ti) s")
         # Now just save the relevant data
-        jldopen("Output/$(tk)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)/Run$(i)Data$(ims)Ims.jld",
-                "w") do file
+        jldopen(joinpath(data_dir, "Run$(i)Data$(ims)Ims.jld"), "w") do file
             # Save full set of microbe data
             write(file, "micd", micd)
             # Save extinction times

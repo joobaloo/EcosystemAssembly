@@ -3,19 +3,18 @@ using TradeOff
 
 function wrap_test()
     ωs, λlf, λhf, λlv, λhv = ω_test()
-    # Check if directory exists and if not make it
-    if ~isdir("Output/Fig8")
-        mkdir("Output/Fig8")
-    end
+    # Define directory and if necessary make it
+    plot_dir = joinpath(pwd(), "Output", "Fig8")
+    mkpath(plot_dir)
     # Extract max ribosome fraction
     plot(ωs, λlf, label = "")
-    savefig("Output/Fig8/GrowthLowFixed.png")
+    savefig(joinpath(plot_dir, "GrowthLowFixed.png"))
     plot(ωs, λhf, label = "")
-    savefig("Output/Fig8/GrowthHighFixed.png")
+    savefig(joinpath(plot_dir, "GrowthHighFixed.png"))
     plot(ωs, λlv, label = "")
-    savefig("Output/Fig8/GrowthLowVar.png")
+    savefig(joinpath(plot_dir, "GrowthLowVar.png"))
     plot(ωs, λhv, label = "")
-    savefig("Output/Fig8/GrowthHighVar.png")
+    savefig(joinpath(plot_dir, "GrowthHighVar.png"))
     return (nothing)
 end
 
