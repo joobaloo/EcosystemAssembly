@@ -67,25 +67,25 @@ function figure8()
         for j in eachindex(ωs)
             # Can finally generate microbe
             fix[i, j] = make_Microbe(MC,
-                                     γm,
-                                     Kγ,
-                                     χl,
-                                     Pb,
-                                     d,
-                                     ϕH,
-                                     Ωf,
-                                     fd,
-                                     ωs[j],
-                                     R,
-                                     Reacs,
-                                     [ηs[i]],
-                                     [kc],
-                                     [KS],
-                                     [kr],
-                                     n,
-                                     [1.0],
-                                     j + (i - 1) * length(ηs),
-                                     PID)
+                γm,
+                Kγ,
+                χl,
+                Pb,
+                d,
+                ϕH,
+                Ωf,
+                fd,
+                ωs[j],
+                R,
+                Reacs,
+                [ηs[i]],
+                [kc],
+                [KS],
+                [kr],
+                n,
+                [1.0],
+                j + (i - 1) * length(ηs),
+                PID)
         end
     end
     # Preallocate vector of varying Ωs
@@ -102,25 +102,25 @@ function figure8()
         for j in eachindex(ωs)
             # Can finally generate microbe
             var[i, j] = make_Microbe(MC,
-                                     γm,
-                                     Kγ,
-                                     χl,
-                                     Pb,
-                                     d,
-                                     ϕH,
-                                     Ωvs[j],
-                                     fd,
-                                     ωs[j],
-                                     R,
-                                     Reacs,
-                                     [ηs[i]],
-                                     [kc],
-                                     [KS],
-                                     [kr],
-                                     n,
-                                     [1.0],
-                                     j + (i - 1) * length(ηs),
-                                     PID)
+                γm,
+                Kγ,
+                χl,
+                Pb,
+                d,
+                ϕH,
+                Ωvs[j],
+                fd,
+                ωs[j],
+                R,
+                Reacs,
+                [ηs[i]],
+                [kc],
+                [KS],
+                [kr],
+                n,
+                [1.0],
+                j + (i - 1) * length(ηs),
+                PID)
         end
     end
     # Choose sensible initial values
@@ -152,10 +152,9 @@ function figure8()
             maxϕv[i, j] = maximum(C[:, 5])
         end
     end
-    # Check if directory exists and if not make it
-    if ~isdir("Output/Fig8")
-        mkdir("Output/Fig8")
-    end
+    # Define output directory and if necessary make it
+    outdir = joinpath(pwd(), "Output", "Fig8")
+    mkpath(outdir)
     # Set default plotting options
     default(dpi = 200)
     # Load in colour scheme
@@ -175,7 +174,7 @@ function figure8()
     plot!(p1, ηs, maxϕf[:, 3], label = "$(ωi) = $(ωs[3])", color = a[3])
     plot!(p1, ηs, maxϕf[:, 4], label = "$(ωi) = $(ωs[4])", color = a[4])
     plot!(p1, ηs, maxϕf[:, 5], label = "$(ωi) = $(ωs[5])", color = a[5])
-    savefig(p1, "Output/Fig8/fixcomp.png")
+    savefig(p1, joinpath(outdir, "fixcomp.png"))
     # Then plot corresponding variable case
     p2 = plot(ylim = (0.0, 0.5), legend = false, xlabel = "Energy availability (η)")
     plot!(p2, ylabel = ylb, title = "Variable $(Ω12)")
@@ -184,7 +183,7 @@ function figure8()
     plot!(p2, ηs, maxϕv[:, 3], label = "$(ωi) = $(ωs[3])", color = a[3])
     plot!(p2, ηs, maxϕv[:, 4], label = "$(ωi) = $(ωs[4])", color = a[4])
     plot!(p2, ηs, maxϕv[:, 5], label = "$(ωi) = $(ωs[5])", color = a[5])
-    savefig(p2, "Output/Fig8/varcomp.png")
+    savefig(p2, joinpath(outdir, "varcomp.png"))
     # Add annotations
     px, py = annpos([0.5; 20], [0.0; 0.5], 0.075, 0.0)
     annotate!(p1, px, py, text("A", 17, :black))
@@ -192,7 +191,7 @@ function figure8()
     annotate!(p2, px, py, text("B", 17, :black))
     # Plot all graphs as a single figure
     pt = plot(p1, p2, layout = (2, 1), size = (600, 800), margin = 5.0mm)
-    savefig(pt, "Output/Fig8/figure8.png")
+    savefig(pt, joinpath(outdir, "figure8.png"))
     return (nothing)
 end
 
