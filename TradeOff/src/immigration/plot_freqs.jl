@@ -30,7 +30,7 @@ function frequency_plots()
     flush(stdout)
     
     # Extract other simulation parameters from the fuLoadError: MethodError: no method matching merge_datanction
-    Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
+    #Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
     #println(μrange)
 
     # Read in appropriate files
@@ -97,4 +97,29 @@ function frequency_plots()
     return (nothing)
 end
 
+function multiple_freqs()
+    load("Output/Imm_plots/number_of_strains.jld")
+    # number of freqs 
+    
+    # Set maximum time to plot to
+    Tmax = 5e5
+    # Set default plotting options
+    default(dpi = 200)
+    # Plot number of strains over time
+    p2 = plot(xaxis = T, y = :log10,
+              xlabel = "Time (s)",
+              ylabel = "Number of Strains",
+              xlims = (0, total_time/10),
+              ylims = (0, maximum(num_strains) + 1))
+    for i in 1:totN
+        # Find and eliminate zeros so that they can be plotted on a log plot
+        inds = (C[:, i] .> 0) .& (T .<= Tmax)
+        plot!(p2, T[inds], C[inds, i], label = "")
+    end
+    savefig(p2, "Output/Imm_plots/$(num_immigrations)events$(num_immigrants)immigrants.png")
+    return (nothing)
+end
+
+
 @time frequency_plots()
+@time multiple_freqs()
