@@ -18,8 +18,8 @@ function imm_assemble()
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
-    #total_time = 6.3e7  # this is approx 2 years in seconds
-    total_time = 6.3e6
+    total_time = 6.3e7  # this is approx 2 years in seconds
+    #total_time = 6.3e6
     num_immigrations = 0
     num_immigrants = 0
 
