@@ -4,6 +4,7 @@ using Glob
 include("simulation_functions.jl")
 """
     imm_assemble()
+    Can't run 1 1 1 1
 
 TBW
 """
@@ -17,7 +18,8 @@ function imm_assemble()
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
-    total_time = 6.3e7 # this is approx 2 years in seconds
+    #total_time = 6.3e7  # this is approx 2 years in seconds
+    total_time = 6.3e6
     num_immigrations = 0
     num_immigrants = 0
 
@@ -31,8 +33,8 @@ function imm_assemble()
         error("Need to provide 4 integers")
     end
 
-    if sim_type != 1
-        error("Only use simulation type 1")
+    if sim_type != 1 && sim_type != 5
+        error("Only use simulation type 1 or 5")
     end
 
     # Starting run assumed to be 1
@@ -59,22 +61,21 @@ function imm_assemble()
         O = 4 * M - 10
     end
 
-    # Preallocate container for filenames
-    pls = fill("", Np)
-
-    # Loop over number of required pools (only 1 according to merge_data.jl)
-    for i in 1:Np
-        # Find all pools satisfying the condition
-        flnms = glob("Pools/ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld")
-        # Loop over valid filenames
-        for j in eachindex(flnms)
-            # Save first that hasn't already been used
-            if flnms[j] ∉ pls
-                pls[i] = flnms[j]
-            end
-        end
-    end
-
+     # Preallocate container for filenames
+     pls = fill("", Np)
+     # Loop over number of required pools
+     for i in 1:Np
+         # Find all pools satisfying the condition
+         pool_dir = joinpath(pwd(), "Pools")
+         flnms = glob("ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld", pool_dir)
+         # Loop over valid filenames
+         for j in eachindex(flnms)
+             # Save first that hasn't already been used
+             if flnms[j] ∉ pls
+                 pls[i] = flnms[j]
+             end
+         end
+     end
     # Save the reaction set for the first file as a point of comparison
     rs = load(pls[1], "reacs")
     # Check that all pools match this
@@ -93,8 +94,8 @@ function imm_assemble()
     as = 1e5
     ϕs = ϕR0
     # Starting with 10 strains for now
-    Ni = 10 
-
+    Ni = 10
+    
     # Time between immigration events
     mT = total_time / num_immigrations
 
@@ -106,17 +107,13 @@ function imm_assemble()
         error("simulation reaction set does not match pool reaction set")
     end
      
-    # if ~isdir("Output/$(num_immigrations)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
-    #     mkdir("Output/$(num_immigrations)$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
-    # end
-
-    # Changing the way files are saved because too confusing - *to add run number*
-    if ~isdir("Output/$(num_immigrations)events_$(num_immigrants)immigrants")
-        mkdir("Output/$(num_immigrations)events_$(num_immigrants)immigrants")
-    end 
+    # check directory exists
+    data_dir = joinpath(
+    pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    mkpath(data_dir)
 
     # Save this parameter set
-    jldopen("Output/$(num_immigrations)events_$(num_immigrants)immigrants/Parameters.jld", "w") do file
+    jldopen(joinpath(data_dir, "Parameters.jld"), "w") do file
         write(file, "ps", ps)
     end
 
@@ -131,11 +128,12 @@ function imm_assemble()
         ti = time()
         # Then run the simulation using imm_full_simulate
         traj, T, micd, its = imm_full_simulate(ps, pop, conc, as, ϕs, mpl, Ni, mT, total_time, num_immigrations, num_immigrants)
+        
         # And then print time elapsed
         tf = time()
         println("Time elapsed on run $i: $(tf - ti) s")
         # Now just save the relevant data
-        jldopen("Output/$(num_immigrations)events_$(num_immigrants)immigrants/Run$(i)Data.jld", "w") do file
+        jldopen(joinpath(data_dir, "Run$(i)Data.jld"), "w") do file
             # Save full set of microbe data
             write(file, "micd", micd)
             # Save extinction times

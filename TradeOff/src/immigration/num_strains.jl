@@ -18,16 +18,19 @@ function calc_num_strains()
         num_immigrations = i
         num_immigrants = 10
 
+        data_dir = joinpath(
+        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+
         # Read in appropriate files
-        pfile = "Output/$(num_events_vector[i])events_$(num_immigrants)immigrants/Parameters.jld"
-        println("Output/$(num_events_vector[i])events_$(num_immigrants)immigrants/Parameters.jld")
+        pfile = joinpath(data_dir, "Parameters.jld")
+        #println("Output/$(num_immigrations)events_$(num_immigrants)immigrants/Parameters.jld")
         if ~isfile(pfile)
             error("$(num_immigrants) immigrations run $(rps) is missing a parameter file")
         end
         
-        ofile = "Output/$(num_events_vector[i])events_$(num_immigrants)immigrants/Run$(rps)Data.jld"
+        ofile = joinpath(data_dir, "Run$(rps)Data.jld")
         if ~isfile(ofile)
-            error("$(num_events_vector[i]) immigration events with (num_immigrants) immigrants run $(rps) is missing an output file")
+            error("$(num_immigrations) immigration events with (num_immigrants)immigrants run $(rps) is missing an output file")
         end
 
         # Read in relevant data
