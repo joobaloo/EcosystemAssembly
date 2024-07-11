@@ -300,7 +300,7 @@ function imm_full_simulate(ps::TOParameters,
 
     # Make containers to store dynamics
     T = sol.t
-    C = sol'
+    C = copy(sol')
 
     # Save this C for output
     traj[1] = C[:, :]
@@ -430,7 +430,7 @@ function imm_full_simulate(ps::TOParameters,
 
     # Store new dynamics in a temporary form
     Tt = sol.t
-    C = sol'
+    C = copy(sol')
 
     # Save new dynamics for output
     traj[i + 1] = C
