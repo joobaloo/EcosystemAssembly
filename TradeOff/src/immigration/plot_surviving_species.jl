@@ -22,7 +22,7 @@ function plot_surviving_species()
 
     # Open the JLD file and load the surviving species data
     data_dir = joinpath(
-        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
 
     stats_file = joinpath(data_dir, "RunStats$(num_immigrations)events_$(num_immigrants)immigrants.jld")
     
@@ -34,17 +34,22 @@ function plot_surviving_species()
     # Extract time and surviving species data
     t_times = load(stats_file, "times")
     mean_surviving_species = load(stats_file, "mean_surviving_species")
-    #println(typeof(mean_surviving_species))
-    #println(mean_surviving_species)
+    sd_surviving_species = load(stats_file, "sd_surviving_species")
+
+    #calculate standard error
+    se_surviving_species = sd_surviving_species ./ sqrt.(rps - 1)
     # Define output directory and if necessary make it
-    outdir = joinpath(pwd(), "Output", "Imm_plots")
+    outdir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     mkpath(outdir) 
     
     #println(t_times)
     # Plotting the data
     p = plot(
         t_times,
-        mean_surviving_species, 
+        mean_surviving_species,
+        ribbon = se_surviving_species,
+        fillcolor = :lightgreen,
+        fillalpha = 0.5, 
         xlabel="Time",
         xlims = (0, 6.3e7*2),
         ylabel="Surviving Species",

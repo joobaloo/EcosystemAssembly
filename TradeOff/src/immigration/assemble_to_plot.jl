@@ -28,7 +28,7 @@ function imm_assemble()
     catch e
         error("need to provide 4 integers")
     end
-    println("Running imm_assemble")
+    println("ASSEMBLING COMMUNITY")
     flush(stdout)
 
     #total_time = 6.3e7  # this is approx 2 years in seconds
@@ -101,7 +101,7 @@ function imm_assemble()
      
     # check directory exists
     data_dir = joinpath(
-    pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     mkpath(data_dir)
 
     # Save this parameter set
@@ -174,14 +174,14 @@ function v_over_t()
     catch e
         error("need to provide 4 integers")
     end
-    println("Running v_over_t")
+    println("MERGING DATA")
     flush(stdout)
 
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
   
-    data_dir = joinpath(
-        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    
     # Read in parameter file
     parameter_file = joinpath(data_dir, "Parameters.jld")
     if ~isfile(parameter_file)
@@ -614,7 +614,7 @@ function calculate_trajectory_stats()
     catch e
         error("need to provide 4 integers")
     end
-    println("Running calculate_trajectory_stats")
+    println("AVERAGING ACROSS SIMULATIONS")
     flush(stdout)
 
     # Load in hardcoded simulation parameters
@@ -630,8 +630,7 @@ function calculate_trajectory_stats()
     no_reactions = 0
 
     # Define data directory
-    data_dir = joinpath(
-        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Loop over number of repeats
     for i in 1:rps
         # Load in relevant output file
@@ -774,7 +773,7 @@ function plot_surviving_species()
 
     # Open the JLD file and load the surviving species data
     data_dir = joinpath(
-        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
 
     stats_file = joinpath(data_dir, "RunStats$(num_immigrations)events_$(num_immigrants)immigrants.jld")
     
@@ -786,17 +785,22 @@ function plot_surviving_species()
     # Extract time and surviving species data
     t_times = load(stats_file, "times")
     mean_surviving_species = load(stats_file, "mean_surviving_species")
-    #println(typeof(mean_surviving_species))
-    #println(mean_surviving_species)
+    sd_surviving_species = load(stats_file, "sd_surviving_species")
+
+    #calculate standard error
+    se_surviving_species = sd_surviving_species ./ sqrt.(rps - 1)
     # Define output directory and if necessary make it
-    outdir = joinpath(pwd(), "Output", "Imm_plots")
+    outdir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     mkpath(outdir) 
     
     #println(t_times)
     # Plotting the data
     p = plot(
         t_times,
-        mean_surviving_species, 
+        mean_surviving_species,
+        ribbon = se_surviving_species,
+        fillcolor = :lightgreen,
+        fillalpha = 0.5, 
         xlabel="Time",
         xlims = (0, 6.3e7*2),
         ylabel="Surviving Species",
@@ -810,8 +814,15 @@ function plot_surviving_species()
     return (nothing)
 end
 
-@time imm_assemble()
-@time v_over_t()
-@time calculate_trajectory_stats()
-@time plot_surviving_species()
+@time begin
+    imm_assemble()
+    v_over_t()
+    calculate_trajectory_stats()
+    plot_surviving_species()
+end 
+
+# @time imm_assemble()
+# @time v_over_t()
+# @time calculate_trajectory_stats()
+# @time plot_surviving_species()
 

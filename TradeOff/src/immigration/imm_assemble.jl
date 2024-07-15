@@ -108,8 +108,7 @@ function imm_assemble()
     end
      
     # check directory exists
-    data_dir = joinpath(
-    pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     mkpath(data_dir)
 
     # Save this parameter set

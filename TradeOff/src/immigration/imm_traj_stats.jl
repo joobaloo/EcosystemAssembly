@@ -266,8 +266,7 @@ function calculate_trajectory_stats()
     no_reactions = 0
 
     # Define data directory
-    data_dir = joinpath(
-        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Loop over number of repeats
     for i in 1:repeats
         # Load in relevant output file
@@ -411,8 +410,7 @@ function snpstats()
     flush(stdout)
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = sim_paras(sim_type)
-    data_dir = joinpath(
-        pwd(), "Output", "$(Np)Pools$(M)Metabolites$(Nt)Speciesd=$(d)u=$(μrange)")
+    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Load in 1st output file
     snapshot_file = joinpath(data_dir, "SnapData$(ims)Ims.jld")
     if ~isfile(snapshot_file)

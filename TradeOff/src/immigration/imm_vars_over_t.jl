@@ -41,8 +41,7 @@ function v_over_t()
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
   
-    data_dir = joinpath(
-        pwd(), "Output", "$(num_immigrations)events_$(num_immigrants)immigrants")
+    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Read in parameter file
     parameter_file = joinpath(data_dir, "Parameters.jld")
     if ~isfile(parameter_file)
