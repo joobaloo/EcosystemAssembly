@@ -94,7 +94,7 @@ function imm_assemble()
     as = 1e5
     ϕs = ϕR0
     # Starting with 10 strains for now
-    Ni = 10
+    Ni = 1
     
     # Time between immigration events
     mT = total_time / num_immigrations

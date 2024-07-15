@@ -86,7 +86,7 @@ function imm_assemble()
     as = 1e5
     ϕs = ϕR0
     # Starting with 10 strains for now
-    Ni = 10
+    Ni = 1
     
     # Time between immigration events
     mT = total_time / num_immigrations
@@ -762,7 +762,7 @@ function plot_surviving_species()
 
     # Check that all arguments can be converted to integers
     try
-        rps = parse(Int64, ARGS[2])
+        rps = parse(Int64, ARGS[1])
         num_immigrations = parse(Int64, ARGS[3])
         num_immigrants = parse(Int64, ARGS[4])
     catch e
@@ -810,8 +810,8 @@ function plot_surviving_species()
     return (nothing)
 end
 
-#@time imm_assemble()
-#@time v_over_t()
-#@time calculate_trajectory_stats()
+@time imm_assemble()
+@time v_over_t()
+@time calculate_trajectory_stats()
 @time plot_surviving_species()
 
