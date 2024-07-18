@@ -120,6 +120,8 @@ function v_over_t()
         average_ΔG = zeros(length(T))
         average_η_per_reac_class = zeros(NoR, length(T))
         average_KS_per_reac_class = zeros(NoR, length(T))
+        community_EUE =  zeros(length(T))
+
         # Save total number of strains
         total_species = length(micd)
         # Make vector of indices
@@ -152,6 +154,57 @@ function v_over_t()
             end
             # Set up counters for the number of species with each reaction gap
             c = zeros(M - 1)
+
+            # loop over species
+            species_EUE_list = []
+            for k in eachindex(inds)
+                #empty vectors to store EUE values
+                numerator_list = []
+                denominator_list = []
+                # loop over the reactions this strain has
+                for l in 1:(ms[inds[k]].R)
+                    # Find reaction number
+                    Rn = ms[inds[k]].Reacs[l]
+                    # Find relevant reaction
+                    r = ps.reacs[Rn]
+
+                    # Calculate the species free-energy dissipation rate
+                    D = calcululate_D(
+                        ΔG0 = r.ΔG0,
+                        S = C[k, r.Rct],
+                        P = C[k, r.Prd],
+                        η = r.η
+                    )
+                    
+                    # Calculate the change in free energy of the reaction
+                    ΔGT = calculate_ΔGT(
+                        ΔG0 = r.ΔG0,
+                        S = C[k, r.Rct],
+                        P = C[k, r.Prd]
+                        )
+
+                    # Calculate enzyme copy number
+                    ECN = Eα(C[j, ϕR], ps, r) 
+
+                    q = calculate_q(
+                        S = C[k, r.Rct],
+                        P = C[k, r.Prd],
+                        E = ECN,
+                        i = k,
+                        ps =ps,
+                        r = r
+                    )
+
+                    numerator = (1-D/ΔGT) * q
+                    denominator = q
+
+                    push!(numerator_list, numerator)
+                    push!(denominator_list, denominator)
+                end
+                EUE = sum(numerator_list)/sum(denominator_list)
+                push!(species_EUE_list, EUE)
+            end
+
             # Find (weighted) total eta value for viable species
             for k in eachindex(vinds)
                 average_η[j] += sum(ms[vinds[k]].η .* ms[vinds[k]].ϕP) * C[j, vinds[k]]

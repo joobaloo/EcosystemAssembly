@@ -9,20 +9,21 @@ using TradeOff
     S::Float64, Substrate concentration
     P::Float64, Product concentration
     η::Float64, Amount of free energy obtained from given reaction
-    ΔGATP :: Float64)
+    ΔGATP :: Float64, Gibbs free energy per mole of ATP
+    )
 
 TBW
 """
 function calculate_D(
     ΔG0 :: Float64,
-    R :: Float64,
-    T :: Float64,
     S::Float64,
     P::Float64,
-    η::Float64,
-    ΔGATP :: Float64)
+    η::Float64)
 
-    D = ΔG0 + (R * T * log1p(Q(S, P))) + (η * ΔGATP)
+    # Assume that temperature T is constant at 20°C
+    T = 293.15
+
+    D = ΔG0 + (Rgas * T * log1p(Q(S, P))) + (η * ΔGATP)
     return (D)
 end 
 
@@ -40,12 +41,13 @@ TBW
 """
 function calculate_ΔGT(
     ΔG0 :: Float64,
-    R :: Float64,
-    T :: Float64,
     S::Float64,
     P::Float64
     )
-    ΔGT = ΔG0 + (R * T * log1p(Q(S, P)))
+    # Assume that temperature T is constant at 20°C
+    T = 293.15
+
+    ΔGT = ΔG0 + (Rgas * T * log1p(Q(S, P)))
 
     return (ΔGT)
 end 
@@ -100,10 +102,13 @@ function calculate_q(S::Float64,
     E::Float64,
     i::Int64,
     ps::Microbe,
-    T::Float64,
     r::Reaction)
     # To speed things I don't have a check here to ensure that r.ID matches ps.Reac[i]
     # This is something to check if I start getting errors
+
+    # Assume that temperature T is constant at 20°C
+    T = 293.15
+
     θ = calculate_θ(S, P, T, ps.η[i], r.ΔG0)
     q = ps.kc[i] * E * S * (1 - θs) / (ps.KS[i] + S * (1 + ps.kr[i] * θ))
     # Ensure that negative value cannot be returned
