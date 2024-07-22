@@ -306,7 +306,9 @@ function calculate_trajectory_stats()
         ("total_biomass_of_viable_species", 2, true, false),
         ("average_ΔG", 2, true, false),
         ("average_η_per_reac_class", 3, true, true),
-        ("average_KS_per_reac_class", 3, true, true)
+        ("average_KS_per_reac_class", 3, true, true),
+        ("species_EUEs", 3, false, false),
+        ("community_EUE", 2, false, false)
     ]
     # Convert this list into a dictionary of preallocated arrays
     data_dict = make_data_dictonary_from_list(variables_of_interest, repeats,

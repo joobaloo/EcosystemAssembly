@@ -2,6 +2,7 @@
 using TradeOff
 using JLD
 include("../immigration/simulation_functions.jl")
+include("../immigration/EUE.jl")
 
 function shan(pops::Array{Float64, 1})
     # Set initial value
@@ -120,7 +121,8 @@ function v_over_t()
         average_ΔG = zeros(length(T))
         average_η_per_reac_class = zeros(NoR, length(T))
         average_KS_per_reac_class = zeros(NoR, length(T))
-        community_EUE =  zeros(length(T))
+        species_EUEs = Vector{Vector{Float64}}()
+        weighted_community_EUE = zeros(length(T))
 
         # Save total number of strains
         total_species = length(micd)
@@ -156,11 +158,11 @@ function v_over_t()
             c = zeros(M - 1)
 
             # loop over species
-            species_EUE_list = []
             for k in eachindex(inds)
                 #empty vectors to store EUE values
                 numerator_list = []
                 denominator_list = []
+                species_EUE_list =[]
                 # loop over the reactions this strain has
                 for l in 1:(ms[inds[k]].R)
                     # Find reaction number
@@ -168,31 +170,38 @@ function v_over_t()
                     # Find relevant reaction
                     r = ps.reacs[Rn]
 
+                    println(r.Rct)
+                    println(r.Prd)
+                    println(r)
+                    # println(r.ΔG0)
+                    # println(total_species)
+
                     # Calculate the species free-energy dissipation rate
-                    D = calcululate_D(
-                        ΔG0 = r.ΔG0,
-                        S = C[k, r.Rct],
-                        P = C[k, r.Prd],
-                        η = r.η
-                    )
+                    D = calculate_D(
+                        r.ΔG0,
+                        C[j, total_species + r.Rct], 
+                        C[j, total_species + r.Prd], 
+                        ms[inds[k]].η[l]
+                        )
                     
                     # Calculate the change in free energy of the reaction
                     ΔGT = calculate_ΔGT(
-                        ΔG0 = r.ΔG0,
-                        S = C[k, r.Rct],
-                        P = C[k, r.Prd]
+                        r.ΔG0,
+                        C[j, total_species + r.Rct],
+                        C[j, total_species + r.Prd],
                         )
 
                     # Calculate enzyme copy number
-                    ECN = Eα(C[j, ϕR], ps, r) 
-
+                    ECN = Eα(C[j, ϕ_i[inds[k]]], ms[inds[k]], l)
+                    
+                    # Calculate reaction rate
                     q = calculate_q(
-                        S = C[k, r.Rct],
-                        P = C[k, r.Prd],
-                        E = ECN,
-                        i = k,
-                        ps =ps,
-                        r = r
+                        C[j, total_species + r.Rct],
+                        C[j, total_species + r.Prd],
+                        ECN,
+                        l,
+                        ms[inds[k]],
+                        r
                     )
 
                     numerator = (1-D/ΔGT) * q
@@ -203,8 +212,13 @@ function v_over_t()
                 end
                 EUE = sum(numerator_list)/sum(denominator_list)
                 push!(species_EUE_list, EUE)
+                return (species_EUE_list)
             end
+            
+            push!(species_EUEs, species_EUE_list)
 
+        
+            
             # Find (weighted) total eta value for viable species
             for k in eachindex(vinds)
                 average_η[j] += sum(ms[vinds[k]].η .* ms[vinds[k]].ϕP) * C[j, vinds[k]]
@@ -226,6 +240,8 @@ function v_over_t()
                                                 ms[vinds[k]].ϕP[l]
                 end
             end
+
+
             # Average over biomass of viable species
             if viable_species[j] > 0
                 average_η[j] /= total_biomass_of_viable_species[j]
@@ -248,7 +264,11 @@ function v_over_t()
                     average_KS_per_reac_class[k, j] /= viable_species_per_reac_class[k, j]
                 end
             end
+            
         end
+
+       
+
         # Preallocate final ϕR values
         final_ϕR = zeros(surviving_species[end])
         # Find indices of all surviving species
@@ -258,6 +278,17 @@ function v_over_t()
             # Store corresponding final ϕR value
             final_ϕR[j] = C[end, ϕ_i[inds[j]]]
         end
+
+        # Find Community EUE
+        for j in 1:length(T)
+            community_EUE = []
+            for k in eachindex(inds)
+                species_EUE = (C[j, k] * species_EUEs[j, k])/sum(C[j])
+                push!(community_EUE, species_EUE)
+            end
+            push!(weighted_community_EUE, sum(community_EUE))
+        end
+
         # Now just save the relevant data
         jldopen(joinpath(data_dir, "AvRun$(i)Data.jld"), "w") do file
             # Save full time course
@@ -279,6 +310,9 @@ function v_over_t()
             write(file, "average_ω", average_ω)
             write(file, "average_ΔG", average_ΔG)
             write(file, "final_ϕR", final_ϕR)
+            # Save EUE data
+            # write(file, "species_EUEs", species_EUEs)
+            # write(file, "community_EUE", weighted_community_EUE)
             # Finally save final time to help with benchmarking
             write(file, "final_time_point", T[end])
         end

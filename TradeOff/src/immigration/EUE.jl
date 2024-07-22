@@ -110,7 +110,7 @@ function calculate_q(S::Float64,
     T = 293.15
 
     θ = calculate_θ(S, P, T, ps.η[i], r.ΔG0)
-    q = ps.kc[i] * E * S * (1 - θs) / (ps.KS[i] + S * (1 + ps.kr[i] * θ))
+    q = ps.kc[i] * E * S * (1 - θ) / (ps.KS[i] + S * (1 + ps.kr[i] * θ))
     # Ensure that negative value cannot be returned
     return (max(q, 0.0))
 end
@@ -125,31 +125,43 @@ end
 
 TBW
 """
-function calculating_EUE(
-    D :: Float64
-    ΔGT::Float64
-    q :: Float64
-    )
-    # Initialise an array for vectors of EUEs for each species
-    EUEs_over_time = []
-    for timepoint in 1:T
-        #empty vectors to store EUE values
-        species_EUE_list =[]
-        #loop over all species
-        for species in 1:list_of_species
-            numerator_list = []
-            denominator_list = []
-            for reaction in 1:reactions
-                numerator = (1-calculate_D()/calculate_ΔGT()) * calculate_q()
-                denominator = calculate_q()
-                push!(numerator_list, numerator)
-                push!(denominator_list, denominator)
-            end
-            species_EUE = sum(numerator_list)/sum(denominator_list)
-            push!(species_EUE_list, species_EUE)
-        end
-        push!(EUEs_over_time, species_EUE_list)
-    end
+# function calculating_EUE(
+#     D :: Float64
+#     ΔGT::Float64
+#     q :: Float64
+#     )
+#     # Initialise an array for vectors of EUEs for each species
+#     EUEs_over_time = []
+#     for timepoint in 1:T
+#         #empty vectors to store EUE values
+#         species_EUE_list =[]
+#         #loop over all species
+#         for species in 1:list_of_species
+#             numerator_list = []
+#             denominator_list = []
+#             for reaction in 1:reactions
+#                 numerator = (1-calculate_D()/calculate_ΔGT()) * calculate_q()
+#                 denominator = calculate_q()
+#                 push!(numerator_list, numerator)
+#                 push!(denominator_list, denominator)
+#             end
+#             species_EUE = sum(numerator_list)/sum(denominator_list)
+#             push!(species_EUE_list, species_EUE)
+#         end
+#         weighted_EUE = sum()
+#         push!(EUEs_over_time, weighted_EUE)
+#     end
 
-    return EUE
-end
+#     return EUE
+# end
+
+
+    # weighted_community_EUE = []
+    # for t in 1:length(T)
+    #     community_EUE = []
+    #     for k in eachindex(inds)
+    #         species_EUE = (C[t, k] * EUE_matrix[t, k])/sum(C[t])
+    #         push!(community_EUE, species_EUE)
+    #     end
+    #     push!(weighted_community_EUE, sum(community_EUE))
+    # end
