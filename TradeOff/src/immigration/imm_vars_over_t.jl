@@ -1,6 +1,6 @@
 # Script to find how variables change over time, which then saves them
 using TradeOff
-using JLD
+using JLD2
 include("../immigration/simulation_functions.jl")
 include("../immigration/EUE.jl")
 
@@ -106,6 +106,10 @@ function v_over_t()
             # Use this index to find and save the correct microbe
             ms[j] = (pools[ind])[micd[j].MID]
         end
+
+        # Save total number of strains
+        total_species = length(micd)
+
         # Preallocate containers to store number of survivors with time
         surviving_species = Array{Int64, 1}(undef, length(T))
         viable_species = Array{Int64, 1}(undef, length(T))
@@ -121,11 +125,10 @@ function v_over_t()
         average_ΔG = zeros(length(T))
         average_η_per_reac_class = zeros(NoR, length(T))
         average_KS_per_reac_class = zeros(NoR, length(T))
-        species_EUEs = Vector{Vector{Float64}}()
+        species_EUEs = Array{Float64, 2}(undef, total_species, length(T))
         weighted_community_EUE = zeros(length(T))
 
-        # Save total number of strains
-        total_species = length(micd)
+        
         # Make vector of indices
         ϕ_i = collect((2 * total_species + ps.M + 1):(3 * total_species + ps.M))
         # Loop over all time points
@@ -162,7 +165,7 @@ function v_over_t()
                 #empty vectors to store EUE values
                 numerator_list = []
                 denominator_list = []
-                species_EUE_list =[]
+
                 # loop over the reactions this strain has
                 for l in 1:(ms[inds[k]].R)
                     # Find reaction number
@@ -170,9 +173,10 @@ function v_over_t()
                     # Find relevant reaction
                     r = ps.reacs[Rn]
 
-                    println(r.Rct)
-                    println(r.Prd)
-                    println(r)
+                    # println(r.Rct)
+                    # println(r.Prd)
+                    # println(r)
+                   # println(ps)
                     # println(r.ΔG0)
                     # println(total_species)
 
@@ -211,11 +215,8 @@ function v_over_t()
                     push!(denominator_list, denominator)
                 end
                 EUE = sum(numerator_list)/sum(denominator_list)
-                push!(species_EUE_list, EUE)
-                return (species_EUE_list)
+                species_EUEs[inds[k],j] = EUE
             end
-            
-            push!(species_EUEs, species_EUE_list)
 
         
             
@@ -283,7 +284,7 @@ function v_over_t()
         for j in 1:length(T)
             community_EUE = []
             for k in eachindex(inds)
-                species_EUE = (C[j, k] * species_EUEs[j, k])/sum(C[j])
+                species_EUE = (C[inds[k], j] * species_EUEs[inds[k], j])/sum(C[inds[k], j])
                 push!(community_EUE, species_EUE)
             end
             push!(weighted_community_EUE, sum(community_EUE))
