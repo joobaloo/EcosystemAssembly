@@ -1,6 +1,6 @@
 # File to calculate stats for the variables across trajectories
 using TradeOff
-using JLD
+using JLD2
 
 # Function to make a dictionary to store all desired data based on list of names and
 # dimensions. This also involves preallocating data where relevant
@@ -307,8 +307,7 @@ function calculate_trajectory_stats()
         ("average_ΔG", 2, true, false),
         ("average_η_per_reac_class", 3, true, true),
         ("average_KS_per_reac_class", 3, true, true),
-        ("species_EUEs", 3, false, false),
-        ("community_EUE", 2, false, false)
+       ("community_EUE", 2, false, false)
     ]
     # Convert this list into a dictionary of preallocated arrays
     data_dict = make_data_dictonary_from_list(variables_of_interest, repeats,

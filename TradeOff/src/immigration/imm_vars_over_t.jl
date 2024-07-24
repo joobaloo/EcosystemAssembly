@@ -125,8 +125,8 @@ function v_over_t()
         average_ΔG = zeros(length(T))
         average_η_per_reac_class = zeros(NoR, length(T))
         average_KS_per_reac_class = zeros(NoR, length(T))
-        species_EUEs = Array{Float64, 2}(undef, total_species, length(T))
-        weighted_community_EUE = zeros(length(T))
+        species_EUEs = Array{Float64, 2}(undef, length(T), total_species)
+        weighted_community_EUE = []
 
         
         # Make vector of indices
@@ -215,7 +215,7 @@ function v_over_t()
                     push!(denominator_list, denominator)
                 end
                 EUE = sum(numerator_list)/sum(denominator_list)
-                species_EUEs[inds[k],j] = EUE
+                species_EUEs[j, inds[k]] = EUE
             end
 
         
@@ -283,12 +283,21 @@ function v_over_t()
         # Find Community EUE
         for j in 1:length(T)
             community_EUE = []
-            for k in eachindex(inds)
-                species_EUE = (C[inds[k], j] * species_EUEs[inds[k], j])/sum(C[inds[k], j])
-                push!(community_EUE, species_EUE)
+            # Find indices of surviving strains
+            inds = findall(x -> x > 1e-5, C[j, 1:total_species])
+            for k in inds
+                if !isnan(C[j,k])
+                    species_EUE = (C[j, k] * species_EUEs[j, k])/sum(filter(!isnan, (C[j, inds])))
+                    push!(community_EUE, species_EUE)
+                end
             end
-            push!(weighted_community_EUE, sum(community_EUE))
+            if any(!isnan, community_EUE)
+                push!(weighted_community_EUE, sum(community_EUE))
+            else
+                push!(weighted_community_EUE, NaN)
+            end
         end
+        
 
         # Now just save the relevant data
         jldopen(joinpath(data_dir, "AvRun$(i)Data.jld"), "w") do file
@@ -312,8 +321,8 @@ function v_over_t()
             write(file, "average_ΔG", average_ΔG)
             write(file, "final_ϕR", final_ϕR)
             # Save EUE data
-            # write(file, "species_EUEs", species_EUEs)
-            # write(file, "community_EUE", weighted_community_EUE)
+            write(file, "species_EUEs", species_EUEs)
+            write(file, "community_EUE", weighted_community_EUE)
             # Finally save final time to help with benchmarking
             write(file, "final_time_point", T[end])
         end
