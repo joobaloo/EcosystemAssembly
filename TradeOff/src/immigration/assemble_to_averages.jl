@@ -1,12 +1,12 @@
 using TradeOff
-using JLD
+using JLD2
 using Glob
 using Plots
 
-include("simulation_functions.jl")
+include("../immigration/simulation_functions.jl")
+include("../immigration/EUE.jl")
 
-println("Compiled")
-flush(stdout)
+
 
 function imm_assemble()
     # Check that sufficient arguments have been provided
@@ -32,7 +32,7 @@ function imm_assemble()
     flush(stdout)
 
     #total_time = 6.3e7  # this is approx 2 years in seconds
-    total_time = 6.3e7 * 2
+    total_time = 6.3e7 / 2
 
     # Starting run assumed to be 1
     Rs = 1
@@ -159,7 +159,6 @@ function v_over_t()
     if length(ARGS) < 4
         error("insufficient inputs provided")
     end
-
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
@@ -174,14 +173,13 @@ function v_over_t()
     catch e
         error("need to provide 4 integers")
     end
-    println("MERGING DATA")
+    println("Compiled")
     flush(stdout)
 
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
   
     data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
-    
     # Read in parameter file
     parameter_file = joinpath(data_dir, "Parameters.jld")
     if ~isfile(parameter_file)
@@ -245,6 +243,10 @@ function v_over_t()
             # Use this index to find and save the correct microbe
             ms[j] = (pools[ind])[micd[j].MID]
         end
+
+        # Save total number of strains
+        total_species = length(micd)
+
         # Preallocate containers to store number of survivors with time
         surviving_species = Array{Int64, 1}(undef, length(T))
         viable_species = Array{Int64, 1}(undef, length(T))
@@ -260,8 +262,10 @@ function v_over_t()
         average_ΔG = zeros(length(T))
         average_η_per_reac_class = zeros(NoR, length(T))
         average_KS_per_reac_class = zeros(NoR, length(T))
-        # Save total number of strains
-        total_species = length(micd)
+        species_EUEs = Array{Float64, 2}(undef, length(T), total_species)
+        weighted_community_EUE = Vector{Float64}(undef, 0)
+
+        
         # Make vector of indices
         ϕ_i = collect((2 * total_species + ps.M + 1):(3 * total_species + ps.M))
         # Loop over all time points
@@ -292,6 +296,67 @@ function v_over_t()
             end
             # Set up counters for the number of species with each reaction gap
             c = zeros(M - 1)
+
+            # loop over species
+            for k in eachindex(inds)
+                #empty vectors to store EUE values
+                numerator_list = []
+                denominator_list = []
+
+                # loop over the reactions this strain has
+                for l in 1:(ms[inds[k]].R)
+                    # Find reaction number
+                    Rn = ms[inds[k]].Reacs[l]
+                    # Find relevant reaction
+                    r = ps.reacs[Rn]
+
+                    # println(r.Rct)
+                    # println(r.Prd)
+                    # println(r)
+                   # println(ps)
+                    # println(r.ΔG0)
+                    # println(total_species)
+
+                    # Calculate the species free-energy dissipation rate
+                    D = calculate_D(
+                        r.ΔG0,
+                        C[j, total_species + r.Rct], 
+                        C[j, total_species + r.Prd], 
+                        ms[inds[k]].η[l]
+                        )
+                    
+                    # Calculate the change in free energy of the reaction
+                    ΔGT = calculate_ΔGT(
+                        r.ΔG0,
+                        C[j, total_species + r.Rct],
+                        C[j, total_species + r.Prd],
+                        )
+
+                    # Calculate enzyme copy number
+                    ECN = Eα(C[j, ϕ_i[inds[k]]], ms[inds[k]], l)
+                    
+                    # Calculate reaction rate
+                    q = calculate_q(
+                        C[j, total_species + r.Rct],
+                        C[j, total_species + r.Prd],
+                        ECN,
+                        l,
+                        ms[inds[k]],
+                        r
+                    )
+
+                    numerator = (1-D/ΔGT) * q
+                    denominator = q
+
+                    push!(numerator_list, numerator)
+                    push!(denominator_list, denominator)
+                end
+                EUE = sum(numerator_list)/sum(denominator_list)
+                species_EUEs[j, inds[k]] = EUE
+            end
+
+        
+            
             # Find (weighted) total eta value for viable species
             for k in eachindex(vinds)
                 average_η[j] += sum(ms[vinds[k]].η .* ms[vinds[k]].ϕP) * C[j, vinds[k]]
@@ -313,6 +378,8 @@ function v_over_t()
                                                 ms[vinds[k]].ϕP[l]
                 end
             end
+
+
             # Average over biomass of viable species
             if viable_species[j] > 0
                 average_η[j] /= total_biomass_of_viable_species[j]
@@ -335,7 +402,11 @@ function v_over_t()
                     average_KS_per_reac_class[k, j] /= viable_species_per_reac_class[k, j]
                 end
             end
+            
         end
+
+       
+
         # Preallocate final ϕR values
         final_ϕR = zeros(surviving_species[end])
         # Find indices of all surviving species
@@ -345,6 +416,26 @@ function v_over_t()
             # Store corresponding final ϕR value
             final_ϕR[j] = C[end, ϕ_i[inds[j]]]
         end
+
+        # Find Community EUE
+        for j in 1:length(T)
+            community_EUE = []
+            # Find indices of surviving strains
+            inds = findall(x -> x > 1e-5, C[j, 1:total_species])
+            for k in inds
+                if !isnan(C[j,k])
+                    species_EUE = (C[j, k] * species_EUEs[j, k])/sum(filter(!isnan, (C[j, inds])))
+                    push!(community_EUE, species_EUE)
+                end
+            end
+            if any(!isnan, community_EUE)
+                push!(weighted_community_EUE, sum(community_EUE))
+            else
+                push!(weighted_community_EUE, NaN)
+            end
+        end
+        
+
         # Now just save the relevant data
         jldopen(joinpath(data_dir, "AvRun$(i)Data.jld"), "w") do file
             # Save full time course
@@ -366,6 +457,9 @@ function v_over_t()
             write(file, "average_ω", average_ω)
             write(file, "average_ΔG", average_ΔG)
             write(file, "final_ϕR", final_ϕR)
+            # Save EUE data
+            write(file, "species_EUEs", species_EUEs)
+            write(file, "community_EUE", weighted_community_EUE)
             # Finally save final time to help with benchmarking
             write(file, "final_time_point", T[end])
         end
@@ -375,12 +469,14 @@ function v_over_t()
     return (nothing)
 end
 
+# Function to make a dictionary to store all desired data based on list of names and
+# dimensions. This also involves preallocating data where relevant
 function make_data_dictonary_from_list(
         variables_of_interest::Array{
             Tuple{String, Int64,
                 Bool, Bool}, 1
         },
-        rps::Int64,
+        repeats::Int64,
         no_reactions::Int64,
         no_time_points::Int64)
     # Make initially empty dictionary
@@ -389,19 +485,20 @@ function make_data_dictonary_from_list(
     for variable in variables_of_interest
         if variable[2] == 2
             data_dict[variable[1]] = Dict(
-                "combined_data" => zeros(rps, no_time_points),
+                "combined_data" => zeros(repeats, no_time_points),
                 "run_data" => Float64[], "dims" => 2,
                 "viable" => variable[3],
                 "divide_by_R" => variable[4])
         elseif variable[2] == 3
             data_dict[variable[1]] = Dict(
-                "combined_data" => zeros(rps, no_reactions,
+                "combined_data" => zeros(repeats, no_reactions,
                     no_time_points),
                 "run_data" => Float64[], "dims" => 3,
                 "viable" => variable[3],
                 "divide_by_R" => variable[4])
         end
     end
+
     return data_dict
 end
 
@@ -523,7 +620,7 @@ function calculate_trajectory_standard_devs!(data_dict::Dict, times::Vector{Floa
         rinds = Vector{Vector}(undef, no_reactions)
         for j in 1:no_reactions
             rinds[j] = (final_time_points .>= times[i]) .&
-                    (data_dict["viable_species_per_reac_class"]["combined_data"][:, j,
+                       (data_dict["viable_species_per_reac_class"]["combined_data"][:, j,
                 i] .>
                         0.0)
         end
@@ -594,29 +691,35 @@ function calculate_trajectory_standard_devs!(data_dict::Dict, times::Vector{Floa
     return (data_dict)
 end
 
+# Function to read in variables with time and calculate stats over time
+"""
+    calculate_trajectory_stats()
+
+TBW
+"""
 function calculate_trajectory_stats()
     # Check that sufficient arguments have been provided
     if length(ARGS) < 4
         error("insufficient inputs provided")
     end
 
-    # Preallocate the variables I want to extract from the input
-    rps = 0
-    sim_type = 0
-    num_immigrations = 0
-    num_immigrants = 0
-    # Check that all arguments can be converted to integers
-    try
-        rps = parse(Int64, ARGS[1])
-        sim_type = parse(Int64, ARGS[2])
-        num_immigrations = parse(Int64, ARGS[3])
-        num_immigrants = parse(Int64, ARGS[4])
-    catch e
-        error("need to provide 4 integers")
-    end
-    println("AVERAGING ACROSS SIMULATIONS")
-    flush(stdout)
-
+     # Preallocate the variables I want to extract from the input
+     repeats = 0
+     sim_type = 0
+     num_immigrations = 0
+     num_immigrants = 0
+     # Check that all arguments can be converted to integers
+     try
+         repeats = parse(Int64, ARGS[1])
+         sim_type = parse(Int64, ARGS[2])
+         num_immigrations = parse(Int64, ARGS[3])
+         num_immigrants = parse(Int64, ARGS[4])
+     catch e
+         error("need to provide 4 integers")
+     end
+     println("Compiled")
+     flush(stdout)
+    
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = sim_paras(sim_type)
 
@@ -624,7 +727,7 @@ function calculate_trajectory_stats()
     no_steps = 2500
 
     # Container to store final times
-    final_time_points = zeros(rps)
+    final_time_points = zeros(repeats)
 
     # Define here so that it is available outside the for loop
     no_reactions = 0
@@ -632,7 +735,7 @@ function calculate_trajectory_stats()
     # Define data directory
     data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Loop over number of repeats
-    for i in 1:rps
+    for i in 1:repeats
         # Load in relevant output file
         averages_file = joinpath(data_dir, "AvRun$(i)Data.jld")
         if ~isfile(averages_file)
@@ -670,15 +773,16 @@ function calculate_trajectory_stats()
         ("total_biomass_of_viable_species", 2, true, false),
         ("average_ΔG", 2, true, false),
         ("average_η_per_reac_class", 3, true, true),
-        ("average_KS_per_reac_class", 3, true, true)
+        ("average_KS_per_reac_class", 3, true, true),
+        ("community_EUE", 2, false, false)
     ]
     # Convert this list into a dictionary of preallocated arrays
-    data_dict = make_data_dictonary_from_list(variables_of_interest, rps,
+    data_dict = make_data_dictonary_from_list(variables_of_interest, repeats,
         no_reactions, length(times))
     # Final ϕR values are a special case
     all_final_ϕRs = Float64[]
     # Loop over number of trajectories (to minimise the number of reads in)
-    for i in 1:rps
+    for i in 1:repeats
         # Load in relevant output file
         averages_file = joinpath(data_dir, "AvRun$(i)Data.jld")
         if ~isfile(averages_file)
@@ -752,77 +856,14 @@ function calculate_trajectory_stats()
     return (nothing)
 end
 
-function plot_surviving_species()
-
-    # Preallocate the variables I want to extract from the input
-    rps = 0
-    num_immigrations = 0
-    num_immigrants = 0
-
-    # Check that all arguments can be converted to integers
-    try
-        rps = parse(Int64, ARGS[1])
-        num_immigrations = parse(Int64, ARGS[3])
-        num_immigrants = parse(Int64, ARGS[4])
-    catch e
-        error("Need to provide 2 integers")
-    end
-
-    println("Compiled and input read in!")
-    flush(stdout)
-
-    # Open the JLD file and load the surviving species data
-    data_dir = joinpath(
-    pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
-
-    stats_file = joinpath(data_dir, "RunStats$(num_immigrations)events_$(num_immigrants)immigrants.jld")
-    
-    # Check it actually exists
-    if ~isfile(stats_file)
-        error("missing stats file for $(num_immigrations)events_$(num_immigrants)immigrants simulations")
-    end
-
-    # Extract time and surviving species data
-    t_times = load(stats_file, "times")
-    mean_surviving_species = load(stats_file, "mean_surviving_species")
-    sd_surviving_species = load(stats_file, "sd_surviving_species")
-
-    #calculate standard error
-    se_surviving_species = sd_surviving_species ./ sqrt.(rps - 1)
-    # Define output directory and if necessary make it
-    outdir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
-    mkpath(outdir) 
-    
-    #println(t_times)
-    # Plotting the data
-    p = plot(
-        t_times,
-        mean_surviving_species,
-        ribbon = se_surviving_species,
-        fillcolor = :lightgreen,
-        fillalpha = 0.5, 
-        xlabel="Time",
-        xlims = (0, 6.3e7*2),
-        ylabel="Surviving Species",
-        title = "$(num_immigrations) Events, $(num_immigrants) Immigrants, $(rps) repeats",
-        legend = false,
-        #ylims = (0, 200), 
-        # label="Surviving Species over Time", 
-        # legend=:topleft
-        )
-    savefig(p, joinpath(outdir, "$(num_immigrations)events$(num_immigrants)immigrants_surviving_species.png"))
-    return (nothing)
-end
 
 @time begin
     imm_assemble()
     v_over_t()
     calculate_trajectory_stats()
-    plot_surviving_species()
 end 
 
 # @time imm_assemble()
 # @time v_over_t()
 # @time calculate_trajectory_stats()
-# @time plot_surviving_species()
 

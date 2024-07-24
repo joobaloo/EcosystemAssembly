@@ -126,7 +126,7 @@ function v_over_t()
         average_η_per_reac_class = zeros(NoR, length(T))
         average_KS_per_reac_class = zeros(NoR, length(T))
         species_EUEs = Array{Float64, 2}(undef, length(T), total_species)
-        weighted_community_EUE = []
+        weighted_community_EUE = Vector{Float64}(undef, 0)
 
         
         # Make vector of indices

@@ -1,5 +1,5 @@
 using TradeOff
-using JLD
+using JLD2
 using Glob
 include("simulation_functions.jl")
 """
@@ -68,6 +68,7 @@ function imm_assemble()
          # Find all pools satisfying the condition
          pool_dir = joinpath(pwd(), "Pools")
          flnms = glob("ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld", pool_dir)
+         println("ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld")
          # Loop over valid filenames
          for j in eachindex(flnms)
              # Save first that hasn't already been used
