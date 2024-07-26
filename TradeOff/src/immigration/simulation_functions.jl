@@ -337,12 +337,12 @@ function imm_full_simulate(ps::TOParameters,
 
     # Now loop over for every immigration attempt
     for i in 1:num_immigrations
-        println("Immigration attempt $i initiated")
-            flush(stdout)
-        # if i % 50 == 0
-        #     println("Immigration attempt $i initiated")
+        # println("Immigration attempt $i initiated")
         #     flush(stdout)
-        # end
+        if i % 10 == 0
+            println("Immigration attempt $i initiated")
+            flush(stdout)
+        end
 
         # Use fixed number of immigrants
         nI = num_immigrants
