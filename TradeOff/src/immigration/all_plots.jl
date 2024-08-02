@@ -325,6 +325,6 @@ function EUE_3D_plot()
     return (nothing)
 end
 
-#@time all_plots()
-#@time final_max_EUE_plots()
+@time all_plots()
+@time final_max_EUE_plots()
 @time EUE_3D_plot()
