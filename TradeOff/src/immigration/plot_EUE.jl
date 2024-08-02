@@ -116,5 +116,5 @@ function plot_community_EUE()
 end
 
 
-#time plot_species_EUE()
-@time plot_community_EUE()
+@time plot_species_EUE()
+#@time plot_community_EUE()

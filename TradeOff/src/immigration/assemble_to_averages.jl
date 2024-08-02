@@ -435,7 +435,7 @@ function v_over_t()
                 end
             end
             if any(!isnan, community_EUE)
-                push!(weighted_community_EUE, sum(community_EUE))
+                push!(weighted_community_EUE, sum(filter(!isnan, community_EUE)))
             else
                 push!(weighted_community_EUE, 0.0)
             end

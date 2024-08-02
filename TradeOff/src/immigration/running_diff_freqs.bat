@@ -9,7 +9,7 @@ set arg5=1
 set arg6=7
 
 rem Loop over a range of values for the third argument
-for %%C in (50 100 150 200 250 300 350 400) do (
+for %%C in (10 20 40 80 160 320 640) do (
     call :retry %%C
 )
 
