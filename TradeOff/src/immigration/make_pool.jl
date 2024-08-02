@@ -10,7 +10,7 @@ function make_spool()
     #Rl = 0
     Rl = 1
     #Ru = 0
-    Ru = 7
+    Ru = 3
     #sim_type = 0
     sim_type = 1
     # # Check that all arguments can be converted to integers

@@ -19,14 +19,19 @@ function imm_assemble()
     sim_type = 0
     num_immigrations = 0
     num_immigrants = 0
+    rl = 0 
+    ru = 0
     # Check that all arguments can be converted to integers
     try
         rps = parse(Int64, ARGS[1])
         sim_type = parse(Int64, ARGS[2])
         num_immigrations = parse(Int64, ARGS[3])
         num_immigrants = parse(Int64, ARGS[4])
+        rl = parse(Int64, ARGS[5])
+        ru = parse(Int64, ARGS[6])
+
     catch e
-        error("need to provide 4 integers")
+        error("need to provide 6 integers")
     end
     println("ASSEMBLING COMMUNITY")
     flush(stdout)
@@ -101,7 +106,7 @@ function imm_assemble()
      
     # check directory exists
     data_dir = joinpath(
-    pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     mkpath(data_dir)
 
     # Save this parameter set
@@ -155,23 +160,24 @@ function shan(pops::Array{Float64, 1})
 end
 
 function v_over_t()
-    # Check that sufficient arguments have been provided
-    if length(ARGS) < 4
-        error("insufficient inputs provided")
-    end
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
     num_immigrations = 0
     num_immigrants = 0
+    rl = 0 
+    ru = 0
     # Check that all arguments can be converted to integers
     try
         rps = parse(Int64, ARGS[1])
         sim_type = parse(Int64, ARGS[2])
         num_immigrations = parse(Int64, ARGS[3])
         num_immigrants = parse(Int64, ARGS[4])
+        rl = parse(Int64, ARGS[5])
+        ru = parse(Int64, ARGS[6])
+
     catch e
-        error("need to provide 4 integers")
+        error("need to provide 6 integers")
     end
     println("Compiled")
     flush(stdout)
@@ -179,7 +185,7 @@ function v_over_t()
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
   
-    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Read in parameter file
     parameter_file = joinpath(data_dir, "Parameters.jld")
     if ~isfile(parameter_file)
@@ -703,20 +709,26 @@ function calculate_trajectory_stats()
         error("insufficient inputs provided")
     end
 
-     # Preallocate the variables I want to extract from the input
-     repeats = 0
-     sim_type = 0
-     num_immigrations = 0
-     num_immigrants = 0
-     # Check that all arguments can be converted to integers
-     try
-         repeats = parse(Int64, ARGS[1])
-         sim_type = parse(Int64, ARGS[2])
-         num_immigrations = parse(Int64, ARGS[3])
-         num_immigrants = parse(Int64, ARGS[4])
-     catch e
-         error("need to provide 4 integers")
-     end
+    # Preallocate the variables I want to extract from the input
+    repeats = 0
+    sim_type = 0
+    num_immigrations = 0
+    num_immigrants = 0
+    rl = 0 
+    ru = 0
+    # Check that all arguments can be converted to integers
+    try
+        repeats = parse(Int64, ARGS[1])
+        sim_type = parse(Int64, ARGS[2])
+        num_immigrations = parse(Int64, ARGS[3])
+        num_immigrants = parse(Int64, ARGS[4])
+        rl = parse(Int64, ARGS[5])
+        ru = parse(Int64, ARGS[6])
+
+    catch e
+        error("need to provide 6 integers")
+    end
+
      println("Compiled")
      flush(stdout)
     
@@ -733,7 +745,7 @@ function calculate_trajectory_stats()
     no_reactions = 0
 
     # Define data directory
-    data_dir = joinpath(pwd(), "Output", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(num_immigrations)events")
     # Loop over number of repeats
     for i in 1:repeats
         # Load in relevant output file

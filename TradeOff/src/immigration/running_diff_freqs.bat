@@ -5,9 +5,11 @@ rem Set constant values for the first, second, and fourth arguments
 set arg1=10
 set arg2=1
 set arg4=1
+set arg5=1
+set arg6=7
 
 rem Loop over a range of values for the third argument
-for %%C in (90 120 130 140 160 180) do (
+for %%C in (50 100 150 200 250 300 350 400) do (
     call :retry %%C
 )
 
@@ -21,11 +23,11 @@ set retries=0
 set max_retries=3
 
 rem Print the current combination of arguments
-echo Running with arguments: %arg1% %arg2% %1 %arg4%
+echo Running with arguments: %arg1% %arg2% %1 %arg4% %arg5% %arg6%
 
 :retry_loop
 rem Run the Julia script with the current combination of arguments
-julia .\src\immigration\assemble_to_averages.jl %arg1% %arg2% %1 %arg4%
+julia .\src\immigration\assemble_to_averages.jl %arg1% %arg2% %1 %arg4% %arg5% %arg6%
 
 rem Check the error level
 if %errorlevel% neq 0 (
