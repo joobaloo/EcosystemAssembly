@@ -2,6 +2,7 @@ using TradeOff
 using JLD2
 using Glob
 using Plots
+using Statistics
 
 include("../immigration/simulation_functions.jl")
 include("../immigration/EUE.jl")
@@ -270,6 +271,7 @@ function v_over_t()
         average_KS_per_reac_class = zeros(NoR, length(T))
         species_EUEs = Array{Float64, 2}(undef, length(T), total_species)
         weighted_community_EUE = Vector{Float64}(undef, 0)
+        median_community_EUE =  Vector{Float64}(undef, 0)
 
         
         # Make vector of indices
@@ -423,7 +425,7 @@ function v_over_t()
             final_ϕR[j] = C[end, ϕ_i[inds[j]]]
         end
 
-        # Find Community EUE
+        # Find mean Community EUE
         for j in 1:length(T)
             community_EUE = []
             # Find indices of surviving strains
@@ -440,7 +442,22 @@ function v_over_t()
                 push!(weighted_community_EUE, 0.0)
             end
         end
-        
+
+        # find median community_EUE
+        for j in 1:length(T)
+            # Find indices of surviving strains
+            inds = findall(x -> x > 1e-5, C[j, 1:total_species])
+            
+            # Check if inds is empty
+            if isempty(inds)
+                community_EUE = 0.0
+            else
+                community_EUE = median(filter(!isnan, inds))
+            end
+            
+            # Push the result to median_community_EUE
+            push!(median_community_EUE, community_EUE)
+        end
 
         # Now just save the relevant data
         jldopen(joinpath(data_dir, "AvRun$(i)Data.jld"), "w") do file
@@ -466,6 +483,7 @@ function v_over_t()
             # Save EUE data
             write(file, "species_EUEs", species_EUEs)
             write(file, "community_EUE", weighted_community_EUE)
+            write(file, "median_community_EUE", median_community_EUE)
             # Finally save final time to help with benchmarking
             write(file, "final_time_point", T[end])
         end
@@ -786,7 +804,8 @@ function calculate_trajectory_stats()
         ("average_ΔG", 2, true, false),
         ("average_η_per_reac_class", 3, true, true),
         ("average_KS_per_reac_class", 3, true, true),
-        ("community_EUE", 2, false, false)
+        ("community_EUE", 2, false, false),
+        ("median_community_EUE", 2, false, false)
     ]
     # Convert this list into a dictionary of preallocated arrays
     data_dict = make_data_dictonary_from_list(variables_of_interest, repeats,
@@ -870,7 +889,7 @@ end
 
 
 @time begin
-    imm_assemble()
+    #imm_assemble()
     v_over_t()
     calculate_trajectory_stats()
 end 

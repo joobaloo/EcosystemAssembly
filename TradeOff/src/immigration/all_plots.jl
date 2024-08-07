@@ -26,7 +26,7 @@ function all_plots()
         data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
 
         stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
-        println(stats_file)
+
         # Check it actually exists
         if !isfile(stats_file)
             error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
@@ -427,7 +427,7 @@ function no_species_vs_EUE_plot()
     data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
 
     stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
-    println(stats_file)
+    
     # Check it actually exists
     if !isfile(stats_file)
         error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
@@ -495,5 +495,5 @@ end
 
 @time all_plots()
 @time final_max_EUE_plots()
-#@time EUE_3D_plot()
+@time EUE_3D_plot()
 @time no_species_vs_EUE_plot()

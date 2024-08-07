@@ -1,12 +1,22 @@
 @echo off
 setlocal enabledelayedexpansion
 
-rem Set constant values for the first, second, and fourth arguments
-set arg1=10
+rem Set constant values 
+
+rem number of repeats
+set arg1=10 
+
+rem simulation type
 set arg2=1
+
+rem number of immigrants
 set arg4=1
-set arg5=20
-set arg6=25
+
+rem lower bound for number of reactions
+set arg5=1
+
+rem upper bound for number of reactions
+set arg6=5
 
 rem Loop over a range of values for the third argument
 for %%C in (10 20 40 80 160 320 640) do (
