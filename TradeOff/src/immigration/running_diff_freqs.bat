@@ -5,8 +5,8 @@ rem Set constant values for the first, second, and fourth arguments
 set arg1=10
 set arg2=1
 set arg4=1
-set arg5=1
-set arg6=5
+set arg5=20
+set arg6=25
 
 rem Loop over a range of values for the third argument
 for %%C in (10 20 40 80 160 320 640) do (
