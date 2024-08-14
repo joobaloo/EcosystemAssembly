@@ -445,18 +445,15 @@ function v_over_t()
 
         # find median community_EUE
         for j in 1:length(T)
+
             # Find indices of surviving strains
             inds = findall(x -> x > 1e-5, C[j, 1:total_species])
-            
-            # Check if inds is empty
-            if isempty(inds)
-                community_EUE = 0.0
-            else
-                community_EUE = median(filter(!isnan, inds))
+
+            if all(isnan, species_EUEs[j, inds])
+                push!(median_community_EUE, 0.0)
+            else 
+                push!(median_community_EUE, median(filter(!isnan,species_EUEs[j, inds])))
             end
-            
-            # Push the result to median_community_EUE
-            push!(median_community_EUE, community_EUE)
         end
 
         # Now just save the relevant data
@@ -897,4 +894,3 @@ end
 # @time imm_assemble()
 # @time v_over_t()
 # @time calculate_trajectory_stats()
-
