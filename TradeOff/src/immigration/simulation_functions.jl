@@ -393,7 +393,7 @@ function imm_full_simulate(ps::TOParameters,
         tspan = (its[i], its[i + 1])
     else
         # At last step just integrate for five times the average time, so that dynamics settle
-        tf = total_time + 5 * mT
+        tf = total_time + 1 * mT
         # Use previous immigration time to define the time span
         tspan = (its[i], tf)
     end
