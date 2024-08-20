@@ -217,6 +217,7 @@ function v_over_t()
         its_vector = collect(its)
 
         # Use to construct full trajectory C
+        GC.gc()
         C = imm_merge_data(ps, traj, T, micd, its_vector)
         # Preallocate vector of microbes
         ms = Array{Microbe, 1}(undef, length(micd))
@@ -887,7 +888,7 @@ end
 
 @time begin
     #imm_assemble()
-    v_over_t()
+    #v_over_t()
     calculate_trajectory_stats()
 end 
 

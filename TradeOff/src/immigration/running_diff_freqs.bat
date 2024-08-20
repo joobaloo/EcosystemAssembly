@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 rem Set constant values 
 
 rem number of repeats
-set arg1=10 
+set arg1=20
 
 rem simulation type
 set arg2=1
