@@ -3,17 +3,50 @@ using Plots
 using StatsPlots
 using HypothesisTests
 
+"""
+    all_plots()
+
+    This function produces 5 time series graphs plotting different variables against time (seconds). 
+    The variables are:
+        1. Energy use efficiency (EUE), 
+        2. Species richness,
+        3. Shannon diveristy (H), 
+        4. Substrate diversifaction
+        5. Total biomass (cells per L)
+    
+    Inputs:
+        This function takes 4 arguments from the command line:
+            1. num_immigrants = number of immigration strains per immigration event
+            2. rl = lower bound of niche size
+            3. ru = upper bound of niche size
+            4. rps = number of repeat simulations.
+
+        This function also requires the corresponding RunStats#events_#immigrants.jld files to extract relevant data.
+    
+    Outputs:
+        1. 5 png files for time series plots with each variable
+        2. A png file with 4 subplots of each variable (excluding species richness)
+        3. A png file comparing species richness and shannon diversity
+
+    Note: 
+        Immigration rates are hard-coded as 10, 20, 40, 80, 160 and 320 immigration events per year.
+        Simulation length is hardcoded to last a year (3.15e7 seconds).
+
+"""
 function all_plots()
+
         # Preallocate the variables I want to extract from the input
         num_immigrants = 0
         rl = 0
         ru = 0
-    
+        rps = 0
+
         # Check that all arguments can be converted to integers
         try
             num_immigrants = parse(Int64, ARGS[1])
             rl = parse(Int64, ARGS[2])
             ru = parse(Int64, ARGS[3])
+            rps = parse(Int64, ARGS[4])
         catch e
             error("Need to provide an integer")
         end
@@ -21,35 +54,30 @@ function all_plots()
         println("Compiled and input read in!")
         flush(stdout)
 
+        # Define immigration rates and simulation length in seconds
         frequencies = [10, 20, 40, 80, 160, 320]
-
-        # Open the JLD file and load the time data
-        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
-
-        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
-
-        # Check it actually exists
+        sim_length = 3.15e7 # 1 year
+        
+        # Open the JLD file and load the time data while checking it exists
+        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])events")
+        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_$(num_immigrants)immigrants.jld")
         if !isfile(stats_file)
             error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
         end
-
-        # Extract time data
         t_times = load(stats_file, "times")
 
+        # Initialise variable arrays
         community_EUE_array = []
         num_species_array = []
         num_substrates_array = []
         total_biomass_array = []
         shannon_array =[]
 
+        # Open the JLD file and load variable data for each immigration rate
         for i in frequencies
-            # Open the JLD file and load the surviving species data
             data_dir = joinpath(
             pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
-        
             stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
-
-            # Check it actually exists
             if ~isfile(stats_file)
                 error("missing stats file for $(i)events_$(num_immigrants)immigrants simulations")
             end
@@ -61,167 +89,197 @@ function all_plots()
             num_substrates = load(stats_file, "mean_no_substrates")
             total_biomass = load(stats_file, "mean_total_biomass_of_viable_species")
             shannon = load(stats_file, "mean_shannon_diversity")
+            
             # collect data
             push!(community_EUE_array, community_EUE)
             push!(num_species_array, num_species)
             push!(num_substrates_array, num_substrates)
             push!(total_biomass_array, total_biomass)
             push!(shannon_array, shannon)
-
         end
 
         # Define output directory and if necessary make it
         outdir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "Immigration_plots")
         mkpath(outdir)
         
+        # Define colour palette
         colour_palette = cgrad(:blues, length(frequencies))
-        # initialise plots
+
+        # Initialise plots
         EUE_plot = plot(
-            legend = false,
-            #xlabel="Time (s)",
+            margin = 10Plots.mm,
+            #legend = false,
+            xlabel="Time (s)",
             ylabel="EUE",
             tickfontsize = 12,
             )
         num_species_plot = plot(
-            legend = false,
-            #xlabel="Time (s)",
+            #legend = false,
+            xlabel="Time (s)",
             tickfontsize = 12,
             ylabel="Number of Species"
             )
         num_substrates_plot = plot(
-            legend = false,
-            #xlabel="Time",
+            #legend = false,
+            xlabel="Time",
             tickfontsize = 12,
             ylabel="Substrate Diversification"
             )
         biomass_plot = plot(
-            legend = false,
-            #xlabel="Time (s)",
+            #legend = false,
+            xlabel="Time (s)",
             tickfontsize = 12,
             ylabel="Total Biomass (cells per L)"
             )
-
         shannon_plot = plot(
-            legend = false,
-            #xlabel="Time (s)",
+            #legend = false,
+            xlabel="Time (s)",
             tickfontsize = 12,
             ylabel="Shannon Diversity Index (H)"
-            )
-
-        # Add each frequency series to the plot with labels
+        )
+        
+        # Add each immigration rate series to the plot with labels
         for (i, freq) in enumerate(frequencies)
             plot!(
                 EUE_plot, 
                 t_times, 
-                xlims = (0, 6.3e7 / 2),
+                xlims = (0, sim_length),
                 ylim = (0,1), 
                 community_EUE_array[i],
                 tickfontsize = 12,
-                color = colour_palette[i] 
-                #label="$(freq) events"
+                color = colour_palette[i], 
+                label="$(freq) events"
             )
-
             plot!(
                 num_species_plot, 
                 t_times, 
-                xlims = (0, 6.3e7 / 2), 
+                xlims = (0, sim_length), 
                 num_species_array[i],
-                ylim = (0,32),
-                color = colour_palette[i]
-                #label="$(freq) events"
+                ylim = (0, ceil((maximum(num_species_array[i])*1.2))),
+                color = colour_palette[i],
+                label="$(freq) events"
             )
-
             plot!(
                 num_substrates_plot, 
                 t_times, 
-                xlims = (0, 6.3e7 / 2), 
-                ylims = (0,20),   
+                xlims = (0, sim_length), 
+                ylim = (0, ceil((maximum(num_substrates_array[i])*1.2))),  
                 tickfontsize = 12,
                 num_substrates_array[i], 
-                color = colour_palette[i]
-                #label="$(freq) events"
+                color = colour_palette[i],
+                label="$(freq) events"
             )
             plot!(
                 biomass_plot, 
                 t_times, 
-                xlims = (0, 6.3e7 / 2),
-                ylims = (0, 2.3e14), 
+                xlims = (0, sim_length),
+                ylim = (0, ceil((maximum(total_biomass_array[i])*1.2))),  
                 tickfontsize = 12,
                 total_biomass_array[i], 
-                color = colour_palette[i]
-                #label="$(freq) events"
+                color = colour_palette[i],
+                label="$(freq) events"
             )
-
             plot!(
                 shannon_plot, 
                 t_times, 
-                xlims = (0, 6.3e7 / 2), 
+                xlims = (0, sim_length), 
                 shannon_array[i], 
-                ylims = (0, 2.2),
+                ylim = (0, ceil((maximum(shannon_array[i])*1.2))), 
                 tickfontsize = 12,
-                color = colour_palette[i]
-                #label="$(freq) events"
+                color = colour_palette[i],
+                label="$(freq) events"
             )
         end
 
+        # Plot EUE, shannon diversity, substrate diversifaction and total biomass in 1 plot
         p = plot(
             EUE_plot, 
             shannon_plot, 
             num_substrates_plot, 
             biomass_plot, 
             layout = (2, 2), 
-            plot_title = "niche_size:$(rl)-$(ru), $(frequencies[1])to$(frequencies[end])_rates, 1 immigrant, 20 repeats",
+            plot_title = "niche_size:$(rl)-$(ru), $(frequencies[1])to$(frequencies[end])_rates, 1 immigrant, $(rps) repeats",
             size = (1200, 800),
             margin = 10Plots.mm
             )
         
+        # Plot comparison of species richness and shannon diversity
         compare_diversity = plot(
             num_species_plot,
             shannon_plot,
             layout = (1,2),
             size = (1200, 400),
             margin = 10Plots.mm
-        )
+            )
 
         savefig(p, joinpath(outdir, "all_4_plots_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
         savefig(EUE_plot, joinpath(outdir, "EUE_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
         savefig(shannon_plot, joinpath(outdir, "shannon_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
         savefig(num_substrates_plot, joinpath(outdir, "num_substrates_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
+        savefig(num_species_plot, joinpath(outdir, "num_species_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
         savefig(biomass_plot, joinpath(outdir, "biomass_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
         savefig(compare_diversity , joinpath(outdir, "shannon_or_richness_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
         return (nothing)
 end
 
-function final_max_EUE_plots()
-    # Preallocate the variables I want to extract from the input
-    num_immigrants = 0
-    rl = 0
-    ru = 0
+"""
+    final_max_EUE_plots()
 
-    # Check that all arguments can be converted to integers
-    try
-        num_immigrants = parse(Int64, ARGS[1])
-        rl = parse(Int64, ARGS[2])
-        ru = parse(Int64, ARGS[3])
-    catch e
-        error("Need to provide an integer")
-    end
-
-    println("Compiled and input read in!")
-    flush(stdout)
-    frequencies = [10, 20, 40, 80, 160, 320]
-    # Open the JLD file and load the time data
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
-
-    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
+    This function produces 5 plots showing how the final and max values of 5 varaible change as immigration rate increases. 
+    The variables are:
+        1. Energy use efficiency (EUE), 
+        2. Species richness,
+        3. Shannon diveristy (H), 
+        4. Substrate diversifaction
+        5. Total biomass (cells per L)
     
-    # Check it actually exists
-    if !isfile(stats_file)
-        error("missing stats file for $(frequencies[1])events 1 immigrant simulations")
-    end
+    Inputs:
+        This function takes 4 arguments from the command line:
+            1. num_immigrants = number of immigration strains per immigration event
+            2. rl = lower bound of niche size
+            3. ru = upper bound of niche size
+            4. rps = number of repeat simulations.
 
-    # Extract time data
-    t_times = load(stats_file, "times")
+        This function also requires the corresponding RunStats#events_#immigrants.jld files to extract relevant data.
+    
+    Outputs:
+        1. 5 png files for the plots with each variable
+        2. A png file with 4 subplots of each variable (excluding species richness)
+
+    Note: 
+        Immigration rates are hard-coded as 10, 20, 40, 80, 160 and 320 immigration events per year.
+
+"""
+function final_max_EUE_plots()
+     # Preallocate the variables I want to extract from the input
+     num_immigrants = 0
+     rl = 0
+     ru = 0
+     rps = 0
+
+     # Check that all arguments can be converted to integers
+     try
+         num_immigrants = parse(Int64, ARGS[1])
+         rl = parse(Int64, ARGS[2])
+         ru = parse(Int64, ARGS[3])
+         rps = parse(Int64, ARGS[4])
+     catch e
+         error("Need to provide an integer")
+     end
+ 
+     println("Compiled and input read in!")
+     flush(stdout)
+
+     # Define immigration rates
+     frequencies = [10, 20, 40, 80, 160, 320]
+     
+     # Open the JLD file and load the time data while checking it exists
+     data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])events")
+     stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_$(num_immigrants)immigrants.jld")
+     if !isfile(stats_file)
+         error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
+     end
+     t_times = load(stats_file, "times")
 
     community_EUE_array = []
     max_EUE_times = []
@@ -250,7 +308,6 @@ function final_max_EUE_plots()
     final_shannon_SE = []
     max_shannon = []
     max_shannon_SE = []
-
 
 
     for i in frequencies
@@ -321,31 +378,14 @@ function final_max_EUE_plots()
 
     EUE_matrix = hcat(final_EUE, max_EUE)        
     EUE_SE_matrix = hcat(final_EUE_SE, max_EUE_SE)
-
     no_species_matrix = hcat(final_surviving_species, max_surviving_species)        
     no_species_SE_matrix = hcat(final_surviving_species_SE, max_surviving_species_SE)
-
     total_biomass_matrix = hcat(final_total_biomass, max_total_biomass)        
     total_biomass_SE_matrix = hcat(final_total_biomass_SE, max_total_biomass_SE)
-
     no_substrates_matrix = hcat(final_no_substrates, max_no_substrates)        
     no_substrates_SE_matrix = hcat(final_no_substrates_SE, max_no_substrates_SE)
-
     shannon_matrix = hcat(final_shannon, max_shannon)        
     shannon_SE_matrix = hcat(final_shannon_SE, max_shannon_SE)
-
-
-    # final_max_EUEs_bar_plot = groupedbar(
-    #     EUE_matrix,
-    #     yerr = EUE_SE_matrix,
-    #     title = "Final and max EUEs, niche_size$(rl)_$(ru)", 
-    #     xlabel = "Rate", 
-    #     xticks = (1:length(frequencies), frequencies),
-    #     #ylabel = "EUE",
-    #     ylims = (0, 1),
-    #     label = ["final" "max"],
-    #     bar_position = :dodge
-    # )
     
     final_max_EUEs_plot = plot(
         EUE_matrix,
@@ -357,21 +397,21 @@ function final_max_EUE_plots()
         ylims = (0, 1),
         tickfontsize = 12,
         linewidth = 3,
-        legend = false
+        #legend = false
         #title = "final and max EUE, niche_size$(rl)_$(ru)" 
     )
     
-    # final_max_no_species_plot = plot(
-    #     no_species_matrix,
-    #     ribbon = no_species_SE_matrix,
-    #     #label = ["final" "max"],
-    #     #xlabel="Rates",
-    #     xticks = (1:length(frequencies), frequencies),
-    #     ylabel ="no. species",
-    #     ylim = (0,32),
-    #     legend = false
-    #     #title = "final and max no. species, niche_size$(rl)_$(ru)" 
-    # )
+    final_max_no_species_plot = plot(
+        no_species_matrix,
+        ribbon = no_species_SE_matrix,
+        label = ["final" "max"],
+        #xlabel="Rates",
+        xticks = (1:length(frequencies), frequencies),
+        ylabel ="no. species",
+        ylim = (0,32),
+        #legend = false
+        #title = "final and max no. species, niche_size$(rl)_$(ru)" 
+    )
 
     final_max_total_biomass_plot = plot(
         total_biomass_matrix,
@@ -381,7 +421,7 @@ function final_max_EUE_plots()
         xticks = (1:length(frequencies), frequencies),
         ylabel="Total biomass (cells per L)",
         ylims = (0, 3.6e14),
-        legend = false
+        #legend = false
         #title = "final and max total biomass, niche_size$(rl)_$(ru)" 
     )
     
@@ -393,7 +433,7 @@ function final_max_EUE_plots()
         xticks = (1:length(frequencies), frequencies),
         ylabel="Substrate Diversification",
         ylims = (0,20),
-        legend = false
+        #legend = false
         #title = "final and max no. substrates, niche_size$(rl)_$(ru)" 
     )
 
@@ -405,10 +445,9 @@ function final_max_EUE_plots()
         xticks = (1:length(frequencies), frequencies),
         ylabel="Shannon Diversity Index (H)",
         ylims = (0, 2.2),
-        legend = false
+        #legend = false
         #title = "final and max no. substrates, niche_size$(rl)_$(ru)" 
     )
-
 
     all_4_final_max_plots = plot(
         final_max_EUEs_plot,
@@ -421,58 +460,66 @@ function final_max_EUE_plots()
         plot_title = "final and max values, niche_size$(rl)_$(ru)"
     )
     
-        
-    # max_EUE_times_plot = plot(
-    #     frequencies,
-    #     max_EUE_times,
-    #     #xlabel = "Rate", 
-    #     #ylabel = "Time",
-    #     legend = false,
-    #     ylims = (0, 3.15e7),
-    #     #title = "Time when max EUE was reached, niche_size$(rl)_$(ru)"
-    # )
-
     savefig(final_max_EUEs_plot, joinpath(outdir, "final_max_EUEs_$(frequencies[1])to$(frequencies[end])_rates.png"))
     savefig(final_max_shannon_plot, joinpath(outdir, "final_max_shannon_$(frequencies[1])to$(frequencies[end])_rates.png"))
     savefig(final_max_no_substrates_plot, joinpath(outdir, "final_max_no_substrates_$(frequencies[1])to$(frequencies[end])_rates.png"))
+    savefig(final_max_no_species_plot, joinpath(outdir, "final_max_no_species_$(frequencies[1])to$(frequencies[end])_rates.png"))
     savefig(final_max_total_biomass_plot, joinpath(outdir, "final_max_total_biomass_$(frequencies[1])to$(frequencies[end])_rates.png"))
-
-    #savefig(max_EUE_times_plot, joinpath(outdir, "max_EUE_times_$(frequencies[1])to$(frequencies[end])_rates.png"))
     savefig(all_4_final_max_plots, joinpath(outdir, "all_4_final_max_plots_$(frequencies[1])to$(frequencies[end])_rates.png"))
     return (nothing)
 end
 
+"""
+    EUE_3D_plot()
+
+    This function creates a 3D plot with energy use efficiency (EUE), time (seconds) and immigration rate.
+    
+    Inputs:
+        This function takes 4 arguments from the command line:
+            1. num_immigrants = number of immigration strains per immigration event
+            2. rl = lower bound of niche size
+            3. ru = upper bound of niche size
+            4. rps = number of repeat simulations.
+
+        This function also requires the corresponding RunStats#events_#immigrants.jld files to extract relevant data.
+    
+    Outputs:
+        This function outputs one png file of the 3D plot
+
+    Note: 
+        Immigration rates are hard-coded as 10, 20, 40, 80, 160 and 320 immigration events per year.
+
+"""
 function EUE_3D_plot()
+
     # Preallocate the variables I want to extract from the input
     num_immigrants = 0
     rl = 0
     ru = 0
+    rps = 0
 
     # Check that all arguments can be converted to integers
     try
         num_immigrants = parse(Int64, ARGS[1])
         rl = parse(Int64, ARGS[2])
         ru = parse(Int64, ARGS[3])
+        rps = parse(Int64, ARGS[4])
     catch e
         error("Need to provide an integer")
     end
 
-    frequencies = [10, 20, 40, 80, 160, 320, 640]
-
     println("Compiled and input read in!")
     flush(stdout)
 
-    # Open the JLD file and load the time data
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
-
-    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
+    # Define immigration rates and simulation length in seconds
+    frequencies = [10, 20, 40, 80, 160, 320]
     
-    # Check it actually exists
+    # Open the JLD file and load the time data while checking it exists
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])events")
+    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_$(num_immigrants)immigrants.jld")
     if !isfile(stats_file)
         error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
     end
-
-    # Extract time data
     t_times = load(stats_file, "times")
 
     community_EUE_array = []
@@ -509,8 +556,9 @@ function EUE_3D_plot()
         xlabel = "Time (s)",
         ylabel = "Rate",
         zlabel = "EUE",
-        legend = false,
+        #legend = false,
         camera = (60, 30),
+        label = ["10" "20" "40" "80" "160" "320"],
         zlims = (0, 1)
     )
 
@@ -537,6 +585,6 @@ function EUE_3D_plot()
 end
 
 #@time all_plots()
-@time final_max_EUE_plots()
-#@time EUE_3D_plot()
+#@time final_max_EUE_plots()
+@time EUE_3D_plot()
 
