@@ -9,6 +9,28 @@ include("../immigration/EUE.jl")
 
 
 
+"""
+    imm_assemble()
+
+    This function assembles the microbe community with a specific immigration rate.
+
+    Inputs:
+        This function takes 4 arguments from the command line:
+            1. rps = number of repeat simulations
+            2. sim_type = simulation type
+            3. num_immigrations = immigration rate
+            4. num_immigrants = number of immigration strains per immigration event
+            5. rl = lower bound of niche size
+            6. ru = upper bound of niche size
+
+        This function also requires parameter files
+    
+    Outputs:
+        This function produces Run#Data.jld files for each repeat of the simulation
+
+    Note: 
+        Simulation length is hardcoded to last a year (3.15e7 seconds).
+"""
 function imm_assemble()
     # Check that sufficient arguments have been provided
     if length(ARGS) < 4
@@ -22,6 +44,7 @@ function imm_assemble()
     num_immigrants = 0
     rl = 0 
     ru = 0
+
     # Check that all arguments can be converted to integers
     try
         rps = parse(Int64, ARGS[1])
@@ -37,17 +60,14 @@ function imm_assemble()
     println("ASSEMBLING COMMUNITY")
     flush(stdout)
 
-    #total_time = 6.3e7  # this is approx 2 years in seconds
-    total_time = 6.3e7 / 2
+    # Define duration of assembly
+    total_time = 3.15e7 
 
     # Starting run assumed to be 1
     Rs = 1
     
     # Now read in hard coded simulation parameters
     Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
-    #println(μrange)
-    # # this μrange value ensures the thermodynamic aspect is "turned off"
-    # μrange = 1.5e7 * (M / 25)
 
     println("Compiled and input read in!")
     flush(stdout)
@@ -65,7 +85,7 @@ function imm_assemble()
      for i in 1:Np
          # Find all pools satisfying the condition
          pool_dir = joinpath(pwd(), "Pools")
-         flnms = glob("ID=*N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld", pool_dir)
+         flnms = glob("ID=*Nichewidth=$(rl)-$(ru)N=$(Nt)M=$(M)d=$(d)u=$(μrange).jld", pool_dir)
          # Loop over valid filenames
          for j in eachindex(flnms)
              # Save first that hasn't already been used
@@ -147,6 +167,17 @@ function imm_assemble()
 
 end
 
+"""
+    shan(pops::Array{Float64, 1})
+
+    This function calculates Shannon diversity (H)
+    
+    Input:
+        The function requires a one-dimensional array of population abundances.
+    
+    Output:
+        This function returns the Shannon diversity index, H for a population
+"""
 function shan(pops::Array{Float64, 1})
     # Set initial value
     H = 0.0
@@ -229,7 +260,7 @@ function v_over_t()
                 pls = cat(pls, micd[j].PID, dims = 1)
                 # Find name of pool
                 pool_file = joinpath(pwd(), "Pools",
-                    "ID=$(micd[j].PID)N=$(Nt)M=$(ps.M)d=$(d)u=$(μrange).jld")
+                    "ID=$(micd[j].PID)Nichewidth=$(rl)-$(ru)N=$(Nt)M=$(ps.M)d=$(d)u=$(μrange).jld")
                 # Check if this is the first pool
                 if length(pls) == 1
                     # If so save the pool
@@ -887,11 +918,7 @@ end
 
 
 @time begin
-    #imm_assemble()
-    #v_over_t()
+    imm_assemble()
+    v_over_t()
     calculate_trajectory_stats()
 end 
-
-# @time imm_assemble()
-# @time v_over_t()
-# @time calculate_trajectory_stats()
