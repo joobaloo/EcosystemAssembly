@@ -11,7 +11,7 @@ arg6=25       # Upper bound for number of reactions
 max_retries=3
 
 # Define the array of values for the third argument (arg3)
-arg3_values=(10 20 40 80 160 320)
+arg3_values=(10 20 40 80 160 320 640)
 
 # Loop over each value in the arg3_values array
 for arg3 in "${arg3_values[@]}"; do
