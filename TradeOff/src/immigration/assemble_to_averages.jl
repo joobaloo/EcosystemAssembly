@@ -18,7 +18,7 @@ include("../immigration/EUE.jl")
         This function takes 4 arguments from the command line:
             1. rps = number of repeat simulations
             2. sim_type = simulation type
-            3. num_immigrations = immigration rate
+            3. immigration_rate = immigration rate per year
             4. num_immigrants = number of immigration strains per immigration event
             5. rl = lower bound of niche size
             6. ru = upper bound of niche size
@@ -40,7 +40,7 @@ function imm_assemble()
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
-    num_immigrations = 0
+    immigration_rate = 0
     num_immigrants = 0
     rl = 0 
     ru = 0
@@ -49,7 +49,7 @@ function imm_assemble()
     try
         rps = parse(Int64, ARGS[1])
         sim_type = parse(Int64, ARGS[2])
-        num_immigrations = parse(Int64, ARGS[3])
+        immigration_rate = parse(Int64, ARGS[3])
         num_immigrants = parse(Int64, ARGS[4])
         rl = parse(Int64, ARGS[5])
         ru = parse(Int64, ARGS[6])
@@ -60,8 +60,11 @@ function imm_assemble()
     println("ASSEMBLING COMMUNITY")
     flush(stdout)
 
+    # Define number of immigration events
+    num_immigrations = 20
+
     # Define duration of assembly
-    total_time = 3.15e7 
+    total_time = (3.15e7/immigration_rate) * num_immigrations
 
     # Starting run assumed to be 1
     Rs = 1
@@ -115,7 +118,7 @@ function imm_assemble()
     Ni = 1
     
     # Time between immigration events
-    mT = total_time / num_immigrations
+    mT = 3.15e7 / immigration_rate
 
     # Make parameter set
     ps = initialise(M, O, μrange)
@@ -127,7 +130,7 @@ function imm_assemble()
      
     # check directory exists
     data_dir = joinpath(
-    pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(immigration_rate)_a_year_rate")
     mkpath(data_dir)
 
     # Save this parameter set
@@ -195,7 +198,7 @@ function v_over_t()
     # Preallocate the variables I want to extract from the input
     rps = 0
     sim_type = 0
-    num_immigrations = 0
+    immigration_rate = 0
     num_immigrants = 0
     rl = 0 
     ru = 0
@@ -203,7 +206,7 @@ function v_over_t()
     try
         rps = parse(Int64, ARGS[1])
         sim_type = parse(Int64, ARGS[2])
-        num_immigrations = parse(Int64, ARGS[3])
+        immigration_rate = parse(Int64, ARGS[3])
         num_immigrants = parse(Int64, ARGS[4])
         rl = parse(Int64, ARGS[5])
         ru = parse(Int64, ARGS[6])
@@ -217,11 +220,11 @@ function v_over_t()
     # Load in hardcoded simulation parameters
     Np, Nt, M, d, μrange = imm_sim_paras(sim_type)
   
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(immigration_rate)_a_year_rate")
     # Read in parameter file
     parameter_file = joinpath(data_dir, "Parameters.jld")
     if ~isfile(parameter_file)
-        error("$(num_immigrations)events_$(num_immigrants)immigrants is missing a parameter file")
+        error("$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants is missing a parameter file")
     end
     # Load parameters
     ps = load(parameter_file, "ps")
@@ -236,7 +239,7 @@ function v_over_t()
         # Load in relevant output file
         output_file = joinpath(data_dir, "Run$(i)Data.jld")
         if ~isfile(output_file)
-            error("$(num_immigrations)events_$(num_immigrants)immigrants run $(i) is missing an output file")
+            error("$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants run $(i) is missing an output file")
         end
         # Load in microbe data, and immigration times
         T = load(output_file, "T")
@@ -759,7 +762,7 @@ function calculate_trajectory_stats()
     # Preallocate the variables I want to extract from the input
     repeats = 0
     sim_type = 0
-    num_immigrations = 0
+    immigration_rate = 0
     num_immigrants = 0
     rl = 0 
     ru = 0
@@ -767,7 +770,7 @@ function calculate_trajectory_stats()
     try
         repeats = parse(Int64, ARGS[1])
         sim_type = parse(Int64, ARGS[2])
-        num_immigrations = parse(Int64, ARGS[3])
+        immigration_rate = parse(Int64, ARGS[3])
         num_immigrants = parse(Int64, ARGS[4])
         rl = parse(Int64, ARGS[5])
         ru = parse(Int64, ARGS[6])
@@ -792,13 +795,13 @@ function calculate_trajectory_stats()
     no_reactions = 0
 
     # Define data directory
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(num_immigrations)events")
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(immigration_rate)_a_year_rate")
     # Loop over number of repeats
     for i in 1:repeats
         # Load in relevant output file
         averages_file = joinpath(data_dir, "AvRun$(i)Data.jld")
         if ~isfile(averages_file)
-            error("$(num_immigrations)events_$(num_immigrants)immigrants run $(i) is missing a variables file")
+            error("$(immigration_rate)/year)_rate_$(num_immigrants)immigrants run $(i) is missing a variables file")
         end
         # Just want to save final times for now
         final_time_points[i] = load(averages_file, "final_time_point")
@@ -846,7 +849,7 @@ function calculate_trajectory_stats()
         # Load in relevant output file
         averages_file = joinpath(data_dir, "AvRun$(i)Data.jld")
         if ~isfile(averages_file)
-            error("$(num_immigrations)events_$(num_immigrants)immigrants run $(rN) is missing a variables file")
+            error("$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants run $(rN) is missing a variables file")
         end
         # First find and save final ϕR value for run
         final_ϕR = load(averages_file, "final_ϕR")
@@ -897,7 +900,7 @@ function calculate_trajectory_stats()
         no_simulations_with_R, no_reactions)
     println("Standard deviations found")
     # Now want to save means and standard deviations
-    jldopen(joinpath(data_dir, "RunStats$(num_immigrations)events_$(num_immigrants)immigrants.jld"), "w") do file
+    jldopen(joinpath(data_dir, "RunStats$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants.jld"), "w") do file
         # Save times
         write(file, "times", times)
         # Save number of continuing trajectories
