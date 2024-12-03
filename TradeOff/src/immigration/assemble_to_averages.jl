@@ -61,7 +61,7 @@ function imm_assemble()
     flush(stdout)
 
     # Define number of immigration events
-    num_immigrations = 20
+    num_immigrations = 320
 
     # Define duration of assembly
     total_time = (3.15e7/immigration_rate) * num_immigrations
