@@ -1,5 +1,5 @@
 # TradeOff package
-Starting a new project on how trade-offs effect ecosystem assembly. Including work on how immgration effects carbon use efficiency.
+Starting a new project on how trade-offs effect ecosystem assembly. Including work on how immgration effects energy use efficiency.
 
 ## Installing the TradeOff packaged in Julia
 1. Enter Pkg mode in Julia and run "activate . "
