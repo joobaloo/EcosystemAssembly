@@ -21,17 +21,12 @@ function plot_variation()
 
         frequencies = [10, 20, 40, 80, 160, 320]
 
-        # Open the JLD file and load the time data
-        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
-
-        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
-
-        # Check it actually exists
+        # Open the JLD file and load the time data while checking it exists
+        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
+        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])_a_year_rate_$(num_immigrants)immigrants.jld")
         if !isfile(stats_file)
             error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
         end
-
-        # Extract time data
         t_times = load(stats_file, "times")
 
         community_EUE_array = []
@@ -47,13 +42,13 @@ function plot_variation()
         for i in frequencies
             # Open the JLD file and load the surviving species data
             data_dir = joinpath(
-            pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
+            pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)_a_year_rate")
         
-            stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
+            stats_file = joinpath(data_dir, "RunStats$(i)_a_year_rate_$(num_immigrants)immigrants.jld")
 
             # Check it actually exists
             if ~isfile(stats_file)
-                error("missing stats file for $(i)events_$(num_immigrants)immigrants simulations")
+                error("missing stats file for $(i)_a_year_rate_$(num_immigrants)immigrants simulations")
             end
         
             # load simulation data
@@ -166,10 +161,10 @@ function plot_variation()
             )
         end
 
-        savefig(EUE_plot, joinpath(outdir, "EUE_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
-        savefig(shannon_plot, joinpath(outdir, "shannon_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
-        savefig(num_substrates_plot, joinpath(outdir, "num_substrates_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
-        savefig(biomass_plot, joinpath(outdir, "biomass_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
+        savefig(EUE_plot, joinpath(outdir, "EUE_variation.png"))
+        savefig(shannon_plot, joinpath(outdir, "shannon_variation.png"))
+        savefig(num_substrates_plot, joinpath(outdir, "num_substrates_variation.png"))
+        savefig(biomass_plot, joinpath(outdir, "biomass_variation.png"))
         return (nothing)
 end
 

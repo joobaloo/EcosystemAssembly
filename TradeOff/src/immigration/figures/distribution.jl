@@ -20,13 +20,13 @@ function distribution_plots()
 
     # Input vectors
     frequencies = [10, 20, 40, 80, 160, 320]
-    rl_vector = [1, 10, 20, 1]
-    ru_vector = [5, 15, 25, 25]
+    rl_vector = [1, 20, 1]
+    ru_vector = [5, 25, 25]
 
     # Initialize a dictionary to collect data
     community_EUE_dict = Dict()
 
-    for i in 1:4
+    for i in 1:3
         rl = rl_vector[i]
         ru = ru_vector[i]
 
@@ -36,12 +36,12 @@ function distribution_plots()
 
         for freq in frequencies
             # Construct the data directory and stats file paths
-            data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(freq)events")
-            stats_file = joinpath(data_dir, "RunStats$(freq)events_$(num_immigrants)immigrants.jld")
+            data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(freq)_a_year_rate")
+            stats_file = joinpath(data_dir, "RunStats$(freq)_a_year_rate_$(num_immigrants)immigrants.jld")
 
             # Check if the file exists
             if !isfile(stats_file)
-                error("Missing stats file for $(freq)events_$(num_immigrants) simulations")
+                error("Missing stats file for $(freq)_a_year_rate_$(num_immigrants) simulations")
             end
 
             # Load simulation data

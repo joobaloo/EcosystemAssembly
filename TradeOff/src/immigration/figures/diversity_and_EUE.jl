@@ -21,38 +21,25 @@ function no_species_vs_EUE_plot()
     println("Compiled and input read in!")
     flush(stdout)
 
-    frequencies = [10, 20, 40, 80, 160, 320, 640]
+    frequencies = [10, 20, 40, 80, 160, 320]
 
-    # Open the JLD file and load the time data
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
-
-    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
-    
-    # Check it actually exists
+    # Open the JLD file and load the time data while checking it exists
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
+    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])_a_year_rate_$(num_immigrants)immigrants.jld")
     if !isfile(stats_file)
         error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
     end
-
-    # Extract time data
-    t_times = load(stats_file, "times")
 
     community_EUE_array = []
     num_species_array = []
 
     for i in frequencies
-        # Open the JLD file and load the surviving species data
-        data_dir = joinpath(
-        pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
-    
-        stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
-
-        # Check it actually exists
+        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)_a_year_rate")
+        stats_file = joinpath(data_dir, "RunStats$(i)_a_year_rate_$(num_immigrants)immigrants.jld")
         if ~isfile(stats_file)
             error("missing stats file for $(i)events_$(num_immigrants)immigrants simulations")
         end
-    
         # load simulation data
-        t_times = load(stats_file, "times")
         community_EUE = load(stats_file, "mean_community_EUE")
         num_species = load(stats_file, "mean_surviving_species")
 
@@ -122,36 +109,24 @@ function shannon_diversity_vs_EUE_plot()
 
     frequencies = [10, 20, 40, 80, 160, 320]
 
-    # Open the JLD file and load the time data
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "1immigrants", "$(frequencies[1])events")
-
-    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_1immigrants.jld")
-    
-    # Check it actually exists
+    # Open the JLD file and load the time data while checking it exists
+    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
+    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])_a_year_rate_$(num_immigrants)immigrants.jld")
     if !isfile(stats_file)
         error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
     end
-
-    # Extract time data
-    t_times = load(stats_file, "times")
 
     community_EUE_array = []
     shannon_diversity_array = []
 
     for i in frequencies
-        # Open the JLD file and load the surviving species data
-        data_dir = joinpath(
-        pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
-    
-        stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
-
-        # Check it actually exists
+        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)_a_year_rate")
+        stats_file = joinpath(data_dir, "RunStats$(i)_a_year_rate_$(num_immigrants)immigrants.jld")
         if ~isfile(stats_file)
             error("missing stats file for $(i)events_$(num_immigrants)immigrants simulations")
         end
-    
+
         # load simulation data
-        t_times = load(stats_file, "times")
         community_EUE = load(stats_file, "mean_community_EUE")
         shannon_diversity = load(stats_file, "mean_shannon_diversity")
 
@@ -205,5 +180,5 @@ end
 
 
 
-#@time no_species_vs_EUE_plot()
+@time no_species_vs_EUE_plot()
 @time shannon_diversity_vs_EUE_plot()
