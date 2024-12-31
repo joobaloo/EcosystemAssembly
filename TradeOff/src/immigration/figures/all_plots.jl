@@ -59,8 +59,8 @@ function all_plots()
         sim_length = 3.15e7 # 1 year
         
         # Open the JLD file and load the time data while checking it exists
-        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])events")
-        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_$(num_immigrants)immigrants.jld")
+        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
+        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])_a_year_rate_$(num_immigrants)immigrants.jld")
         if !isfile(stats_file)
             error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
         end
@@ -76,8 +76,8 @@ function all_plots()
         # Open the JLD file and load variable data for each immigration rate
         for i in frequencies
             data_dir = joinpath(
-            pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
-            stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
+            pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)_a_year_rate")
+            stats_file = joinpath(data_dir, "RunStats$(i)_a_year_rate_$(num_immigrants)immigrants.jld")
             if ~isfile(stats_file)
                 error("missing stats file for $(i)events_$(num_immigrants)immigrants simulations")
             end
@@ -143,7 +143,7 @@ function all_plots()
             plot!(
                 EUE_plot, 
                 t_times, 
-                xlims = (0, sim_length),
+                #xlims = (0, sim_length),
                 ylim = (0,1), 
                 community_EUE_array[i],
                 tickfontsize = 12,
@@ -153,7 +153,7 @@ function all_plots()
             plot!(
                 num_species_plot, 
                 t_times, 
-                xlims = (0, sim_length), 
+                #xlims = (0, sim_length), 
                 num_species_array[i],
                 ylim = (0, ceil((maximum(num_species_array[i])*1.2))),
                 color = colour_palette[i],
@@ -162,7 +162,7 @@ function all_plots()
             plot!(
                 num_substrates_plot, 
                 t_times, 
-                xlims = (0, sim_length), 
+                #xlims = (0, sim_length), 
                 ylim = (0, ceil((maximum(num_substrates_array[i])*1.2))),  
                 tickfontsize = 12,
                 num_substrates_array[i], 
@@ -172,7 +172,7 @@ function all_plots()
             plot!(
                 biomass_plot, 
                 t_times, 
-                xlims = (0, sim_length),
+                #xlims = (0, sim_length),
                 ylim = (0, ceil((maximum(total_biomass_array[i])*1.2))),  
                 tickfontsize = 12,
                 total_biomass_array[i], 
@@ -182,7 +182,7 @@ function all_plots()
             plot!(
                 shannon_plot, 
                 t_times, 
-                xlims = (0, sim_length), 
+                #xlims = (0, sim_length), 
                 shannon_array[i], 
                 ylim = (0, ceil((maximum(shannon_array[i])*1.2))), 
                 tickfontsize = 12,
@@ -274,8 +274,8 @@ function final_max_EUE_plots()
      frequencies = [10, 20, 40, 80, 160, 320]
      
      # Open the JLD file and load the time data while checking it exists
-     data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])events")
-     stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_$(num_immigrants)immigrants.jld")
+     data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
+     stats_file = joinpath(data_dir, "RunStats$(frequencies[1])_a_year_rate_$(num_immigrants)immigrants.jld")
      if !isfile(stats_file)
          error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
      end
@@ -313,9 +313,9 @@ function final_max_EUE_plots()
     for i in frequencies
         # Open the JLD file and load the surviving species data
         data_dir = joinpath(
-        pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
+        pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)_a_year_rate")
     
-        stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
+        stats_file = joinpath(data_dir, "RunStats$(i)_a_year_rate_$(num_immigrants)immigrants.jld")
 
         # Check it actually exists
         if ~isfile(stats_file)
@@ -469,120 +469,6 @@ function final_max_EUE_plots()
     return (nothing)
 end
 
-"""
-    EUE_3D_plot()
 
-    This function creates a 3D plot with energy use efficiency (EUE), time (seconds) and immigration rate.
-    
-    Inputs:
-        This function takes 4 arguments from the command line:
-            1. num_immigrants = number of immigration strains per immigration event
-            2. rl = lower bound of niche size
-            3. ru = upper bound of niche size
-            4. rps = number of repeat simulations.
-
-        This function also requires the corresponding RunStats#events_#immigrants.jld files to extract relevant data.
-    
-    Outputs:
-        This function outputs one png file of the 3D plot
-
-    Note: 
-        Immigration rates are hard-coded as 10, 20, 40, 80, 160 and 320 immigration events per year.
-
-"""
-function EUE_3D_plot()
-
-    # Preallocate the variables I want to extract from the input
-    rps = 0
-    num_immigrants = 0
-    rl = 0
-    ru = 0
-
-    # Check that all arguments can be converted to integers
-    try
-        rps = parse(Int64, ARGS[1])
-        num_immigrants = parse(Int64, ARGS[2])
-        rl = parse(Int64, ARGS[3])
-        ru = parse(Int64, ARGS[4])
-    catch e
-        error("Need to provide an integer")
-    end
-
-    println("Compiled and input read in!")
-    flush(stdout)
-    # Define immigration rates and simulation length in seconds
-    frequencies = [10, 20, 40, 80, 160, 320]
-    
-    # Open the JLD file and load the time data while checking it exists
-    data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])events")
-    stats_file = joinpath(data_dir, "RunStats$(frequencies[1])events_$(num_immigrants)immigrants.jld")
-    if !isfile(stats_file)
-        error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
-    end
-    t_times = load(stats_file, "times")
-
-    community_EUE_array = []
-
-    for i in frequencies
-        # Open the JLD file and load the surviving species data
-        data_dir = joinpath(
-        pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(i)events")
-    
-        stats_file = joinpath(data_dir, "RunStats$(i)events_$(num_immigrants)immigrants.jld")
-
-        # Check it actually exists
-        if ~isfile(stats_file)
-            error("missing stats file for $(i)events_$(num_immigrants)immigrants simulations")
-        end
-    
-        # load simulation data
-        t_times = load(stats_file, "times")
-        community_EUE = load(stats_file, "mean_community_EUE")
-
-        # collect data
-        push!(community_EUE_array, community_EUE)
-
-    end
-
-    # Define output directory and if necessary make it
-    outdir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "Immigration_plots")
-    mkpath(outdir)
-      
-
-    # Initialize the 3D plot with correct setup
-    EUE_3D_plot = plot(
-        title = "3D Plot of EUE vs Rate vs Time, niche_size$(rl)_$(ru)",
-        xlabel = "Time (s)",
-        ylabel = "Rate",
-        zlabel = "EUE",
-        #legend = false,
-        camera = (60, 30),
-        label = ["10" "20" "40" "80" "160" "320"],
-        zlims = (0, 1)
-    )
-
-    # Add lines for each rate
-    for (i, freq) in enumerate(frequencies)
-        t_data = t_times
-        f_data = fill(freq, length(t_times))
-        eue_data = community_EUE_array[i]
-        
-        plot!(
-            EUE_3D_plot,
-            t_data, 
-            f_data, 
-            eue_data, 
-            seriestype = :path3d, 
-            legend = false,
-            camera = (60, 30),
-            zlims = (0, 1)
-        )
-    end
-
-    savefig(EUE_3D_plot, joinpath(outdir, "EUE_3D_plot_$(frequencies[1])to$(frequencies[end])_frequencies.png"))
-    return (nothing)
-end
-
-#@time all_plots()
-@time final_max_EUE_plots()
-#@time EUE_3D_plot()
+@time all_plots()
+#@time final_max_EUE_plots()
