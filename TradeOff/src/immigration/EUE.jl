@@ -1,5 +1,15 @@
 using TradeOff
 
+# function to find the reaction quotient Q, in the case of 1 to 1 stoichiometry
+function absoluteQ(S::Float64, P::Float64)
+    if P < 0 || S < 0
+        Q = 1*10e20 # if either substrate or product concentrations are negative the reaction quotient is set to a very small positive number
+    else
+        Q = P / S
+    end
+    return (Q)
+end
+
 """
     Function to calculate the amount of free energy dissipated
     calculate_D(
@@ -23,7 +33,7 @@ function calculate_D(
     # Assume that temperature T is constant at 20°C
     T = 293.15
 
-    D = ΔG0 + (Rgas * T * log1p(Q(S, P))) + (η * ΔGATP)
+    D = ΔG0 + (Rgas * T * log1p(absoluteQ(S, P))) + (η * ΔGATP)
     return (D)
 end 
 
@@ -47,7 +57,7 @@ function calculate_ΔGT(
     # Assume that temperature T is constant at 20°C
     T = 293.15
 
-    ΔGT = ΔG0 + (Rgas * T * log1p(Q(S, P)))
+    ΔGT = ΔG0 + (Rgas * T * log1p(absoluteQ(S, P)))
 
     return (ΔGT)
 end 
@@ -77,7 +87,7 @@ function calculate_θ(
     elseif P <= 0.0
         θs = 0.0
     else
-        θs = Q(S, P) / Keq(T, η, ΔG0)
+        θs = absoluteQ(S, P) / Keq(T, η, ΔG0)
     end
     # θ can be greater than 1, this does not have any impact as q cannot be negative
     return (θs)
