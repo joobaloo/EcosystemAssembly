@@ -2,11 +2,12 @@ using TradeOff
 
 # function to find the reaction quotient Q, in the case of 1 to 1 stoichiometry
 function absoluteQ(S::Float64, P::Float64)
-    if P < 0 || S < 0
-        Q = 1*10e20 # if either substrate or product concentrations are negative the reaction quotient is set to a very small positive number
-    else
-        Q = P / S
+    if P < 0 
+        P = 1e20 
+    elseif S < 0
+        S = 1e20
     end
+    Q = P / S
     return (Q)
 end
 
