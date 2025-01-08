@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH--time=0-05:00:00
-#SBATCH--ntasks=20
+#SBATCH--ntasks=21
 #SBATCH--cpus-per-task=1
 #SBATCH--mem=300G
 #SBATCH--partition=large_336 
