@@ -2,7 +2,7 @@
 #SBATCH --time=0-05:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=300G
+#SBATCH --mem=50G
 #SBATCH --partition=large_336
 #SBATCH --output=job_%A_%a.log
 #SBATCH --array=0-6
@@ -26,3 +26,10 @@ else
     echo "Invalid task type: $task_type"
     exit 1
 fi
+
+
+# Use these commands to run
+#sbatch --array=0-6 src/immigration/array_parallel.sh simulation
+#sbatch --array=0-6 src/immigration/array_parallel.sh analysis
+#sbatch --array=0-6 src/immigration/array_parallel.sh averaging
+
