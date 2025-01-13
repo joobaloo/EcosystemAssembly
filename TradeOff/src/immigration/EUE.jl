@@ -2,13 +2,14 @@ using TradeOff
 
 # function to find the reaction quotient Q, in the case of 1 to 1 stoichiometry
 function absoluteQ(S::Float64, P::Float64)
-    if S < 0 
-        Q = 1
+    if S < 0
+        return 1.0
     elseif P < 0
-        Q = 0
+        return 0.0
+    else
+        Q = P / S
+        return Q
     end
-    Q = P / S
-    return (Q)
 end
 
 """
