@@ -402,4 +402,4 @@ println("All data saved")
 return (nothing)
 end
 
-@profile calculate_trajectory_stats
+@profile calculate_trajectory_stats()
