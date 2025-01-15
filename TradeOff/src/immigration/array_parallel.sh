@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --time=0-05:00:00
+#SBATCH --time=0-10:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=50G
+#SBATCH --mem=70G
 #SBATCH --partition=large_336
 #SBATCH --output=job_%A_%a.log
 #SBATCH --array=0-6
