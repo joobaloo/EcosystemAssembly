@@ -17,11 +17,11 @@ rate=${rates[$SLURM_ARRAY_TASK_ID]}
 task_type=$1
 
 if [[ "$task_type" == "simulation" ]]; then
-    julia ./src/immigration/assemble.jl 20 1 $rate 1 1 5
+    julia ./src/immigration/assemble.jl 20 1 $rate 1 20 25
 elif [[ "$task_type" == "analysis" ]]; then
-    julia ./src/immigration/analysis.jl 20 1 $rate 1 1 5
+    julia ./src/immigration/analysis.jl 20 1 $rate 1 20 25
 elif [[ "$task_type" == "averaging" ]]; then
-    julia ./src/immigration/averages.jl 20 1 $rate 1 1 5
+    julia ./src/immigration/averages.jl 20 1 $rate 1 20 25
 else
     echo "Invalid task type: $task_type"
     exit 1
