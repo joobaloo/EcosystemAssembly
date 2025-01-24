@@ -2,7 +2,6 @@ using TradeOff
 using JLD2
 using Glob
 using Plots
-using Profile
 using Statistics
 
 include("../immigration/simulation_functions.jl")
@@ -171,4 +170,5 @@ function imm_assemble()
 
 end
 
-@profile imm_assemble()
+
+@time imm_assemble()    
