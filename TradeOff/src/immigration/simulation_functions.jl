@@ -1,7 +1,6 @@
 using DifferentialEquations
-include("../simulate/sim.jl")
-
-export initialise, choose_reactions, imm_merge_data
+using TradeOff
+export initialise, choose_reactions, imm_merge_data, imm_sim_paras
 
 function imm_merge_data(ps::TOParameters,
     traj::Array{Array{Float64, 2}, 1},

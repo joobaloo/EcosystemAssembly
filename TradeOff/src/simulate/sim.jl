@@ -1,5 +1,5 @@
 # A script to run the dynamics for the full model.
-export full_simulate, sing_pop, doub_pop, θ, θ_smooth, qs
+export full_simulate, sing_pop, doub_pop, θ, θ_smooth, qs, full_dynamics!
 
 # These are temporarily being output to aid with testing
 export γs, λs, Eα

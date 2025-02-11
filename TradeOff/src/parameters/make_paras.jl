@@ -2,28 +2,28 @@
 export initialise, choose_reactions
 
 # function to randomly choose the reactions that a specific microbe can make use of
-function choose_reactions(O::Int64, Rs::Array{Int64, 1})
-    @assert length(Rs)>0 "vector of possible numbers of reactions can't be empty"
-    # select (uniformly) R value from supplied vector
-    R = rand(Rs)
-    # Preallocate vector of reaction identities
-    Reacs = zeros(Int64, R)
-    # Choose random first value
-    Reacs[1] = rand(1:O)
-    # Then fill out later values
-    for i in 2:R
-        good = false
-        while good == false
-            r = rand(1:O)
-            # Check to avoid repeated values
-            if r ∉ Reacs[1:(i - 1)]
-                Reacs[i] = r
-                good = true
-            end
-        end
-    end
-    return (R, Reacs)
-end
+# function choose_reactions(O::Int64, Rs::Array{Int64, 1})
+#     @assert length(Rs)>0 "vector of possible numbers of reactions can't be empty"
+#     # select (uniformly) R value from supplied vector
+#     R = rand(Rs)
+#     # Preallocate vector of reaction identities
+#     Reacs = zeros(Int64, R)
+#     # Choose random first value
+#     Reacs[1] = rand(1:O)
+#     # Then fill out later values
+#     for i in 2:R
+#         good = false
+#         while good == false
+#             r = rand(1:O)
+#             # Check to avoid repeated values
+#             if r ∉ Reacs[1:(i - 1)]
+#                 Reacs[i] = r
+#                 good = true
+#             end
+#         end
+#     end
+#     return (R, Reacs)
+# end
 
 # function to generate parameter set for the fixed parameters
 function initialise(M::Int64, O::Int64)

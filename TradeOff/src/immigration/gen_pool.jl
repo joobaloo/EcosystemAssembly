@@ -1,7 +1,7 @@
 # Script to generate and save a pool of microbes with particular parameter ranges
 using Distributions
 using JLD2
-export new_pool, new_mic, fix_reactions
+export new_pool, new_mic, fix_reactions, kin_rand
 
 # function to generate fix set of reaction for our model. Each metabolite can be broken
 # into any metabolite below it. The steps between metabolites are fixed.
