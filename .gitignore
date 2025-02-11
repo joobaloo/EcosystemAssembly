@@ -57,3 +57,6 @@ Manifest.toml
 # Ignore the pool files as they are just too big to add, and the Output folders, which also contain files that are far too large
 TradeOff/Pools/*.jld
 TradeOff/Output/*/
+
+# Ignore testing files
+*testing.jl
