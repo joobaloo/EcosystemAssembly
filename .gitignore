@@ -59,4 +59,4 @@ TradeOff/Pools/*.jld
 TradeOff/Output/*/
 
 # Ignore testing files
-*testing.jl
+TradeOff/src/immigration/testing.jl
