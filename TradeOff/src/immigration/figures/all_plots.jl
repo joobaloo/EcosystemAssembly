@@ -55,16 +55,9 @@ function all_plots()
         flush(stdout)
 
         # Define immigration rates and simulation length in seconds
-        frequencies = [10, 20, 40, 80, 160, 320]
+        frequencies = [10, 20, 40, 80, 160, 320, 640]
+        #frequencies = [10,80,640]
         sim_length = 3.15e7 # 1 year
-        
-        # Open the JLD file and load the time data while checking it exists
-        data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
-        stats_file = joinpath(data_dir, "RunStats$(frequencies[1])_a_year_rate_$(num_immigrants)immigrants.jld")
-        if !isfile(stats_file)
-            error("missing stats file for $(frequencies[1]) events 1 immigrant simulations")
-        end
-        t_times = load(stats_file, "times")
 
         # Initialise variable arrays
         community_EUE_array = []
@@ -72,6 +65,7 @@ function all_plots()
         num_substrates_array = []
         total_biomass_array = []
         shannon_array =[]
+        t_times_array = []
 
         # Open the JLD file and load variable data for each immigration rate
         for i in frequencies
@@ -83,12 +77,12 @@ function all_plots()
             end
         
             # load simulation data
-            t_times = load(stats_file, "times")
             community_EUE = load(stats_file, "mean_community_EUE")
             num_species = load(stats_file, "mean_surviving_species")
             num_substrates = load(stats_file, "mean_no_substrates")
             total_biomass = load(stats_file, "mean_total_biomass_of_viable_species")
             shannon = load(stats_file, "mean_shannon_diversity")
+            t_times = load(stats_file, "times")
             
             # collect data
             push!(community_EUE_array, community_EUE)
@@ -96,6 +90,7 @@ function all_plots()
             push!(num_substrates_array, num_substrates)
             push!(total_biomass_array, total_biomass)
             push!(shannon_array, shannon)
+            push!(t_times_array, t_times)
         end
 
         # Define output directory and if necessary make it
@@ -142,7 +137,7 @@ function all_plots()
         for (i, freq) in enumerate(frequencies)
             plot!(
                 EUE_plot, 
-                t_times, 
+                t_times_array[i], 
                 #xlims = (0, sim_length),
                 ylim = (0,1), 
                 community_EUE_array[i],
@@ -152,7 +147,7 @@ function all_plots()
             )
             plot!(
                 num_species_plot, 
-                t_times, 
+                t_times_array[i], 
                 #xlims = (0, sim_length), 
                 num_species_array[i],
                 ylim = (0, ceil((maximum(num_species_array[i])*1.2))),
@@ -161,7 +156,7 @@ function all_plots()
             )
             plot!(
                 num_substrates_plot, 
-                t_times, 
+                t_times_array[i], 
                 #xlims = (0, sim_length), 
                 ylim = (0, ceil((maximum(num_substrates_array[i])*1.2))),  
                 tickfontsize = 12,
@@ -171,7 +166,7 @@ function all_plots()
             )
             plot!(
                 biomass_plot, 
-                t_times, 
+                t_times_array[i], 
                 #xlims = (0, sim_length),
                 ylim = (0, ceil((maximum(total_biomass_array[i])*1.2))),  
                 tickfontsize = 12,
@@ -181,7 +176,7 @@ function all_plots()
             )
             plot!(
                 shannon_plot, 
-                t_times, 
+                t_times_array[i], 
                 #xlims = (0, sim_length), 
                 shannon_array[i], 
                 ylim = (0, ceil((maximum(shannon_array[i])*1.2))), 
@@ -271,7 +266,7 @@ function final_max_EUE_plots()
      flush(stdout)
 
      # Define immigration rates
-     frequencies = [10, 20, 40, 80, 160, 320]
+     frequencies = [10, 20, 40, 80, 160, 320, 640]
      
      # Open the JLD file and load the time data while checking it exists
      data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
