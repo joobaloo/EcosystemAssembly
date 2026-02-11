@@ -1,5 +1,7 @@
 using TradeOff
 using Random
+
+include("../immigration/simulation_functions.jl")
 include("../immigration/gen_pool.jl")
 export make_spool
 # Function to generate a species pool

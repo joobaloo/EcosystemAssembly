@@ -6,6 +6,7 @@ using Statistics
 
 include("../immigration/simulation_functions.jl")
 include("../immigration/EUE.jl")
+include("../immigration/gen_pool.jl")
 
 
 
