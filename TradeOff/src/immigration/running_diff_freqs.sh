@@ -5,13 +5,14 @@ arg1=20       # Number of repeats
 arg2=1        # Simulation type
 arg4=1        # Number of immigrants
 arg5=1        # Lower bound for number of reactions
-arg6=25       # Upper bound for number of reactions
+arg6=5       # Upper bound for number of reactions
 
 # Define the maximum number of retries
-max_retries=3
+max_retries=1
 
 # Define the array of values for the third argument (arg3)
-arg3_values=(10 20 40 80 160 320 640)
+#arg3_values=(10 20 40 80 160 320 640)
+arg3_values=(10 80 320)
 
 # Loop over each value in the arg3_values array
 for arg3 in "${arg3_values[@]}"; do
