@@ -1,14 +1,16 @@
 #!/bin/bash
-#SBATCH --job-name=immigration
 #SBATCH --time=0-10:00:00
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
 #SBATCH --mem=70G
 #SBATCH --partition=compute
 #SBATCH --output=job_%A_%a.log
 #SBATCH --array=0-2
 
-module load julia 
+cd /lustrehome/home/s.2540740/EcosystemAssembly/TradeOff
+
+# Print debug info
+echo "Running on: $(hostname)"
+echo "Working directory: $(pwd)"
+
 
 # Constant values
 arg1=20
@@ -29,7 +31,7 @@ max_retries=1
 retries=0
 
 while true; do
-    julia ./src/immigration/assemble_to_averages.jl \
+    julia --project=. src/immigration/assemble_to_averages.jl \
         "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
 
     if [ $? -eq 0 ]; then
