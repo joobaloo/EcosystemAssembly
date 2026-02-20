@@ -91,6 +91,16 @@ function v_over_t()
         # Use to construct full trajectory C
         GC.gc()
         C = imm_merge_data(ps, traj, T, micd, its_vector)
+
+        # Downsample trajectory to ~5000 points
+        max_points = 5000
+        step = Int(ceil(length(T) / max_points))
+        inds = 1:step:length(T)
+
+        C = C[inds, :]
+        T = T[inds]
+
+        GC.gc()
         
         # print sizes for debugging
         println("----- Run $i diagnostics -----")
