@@ -19,12 +19,12 @@ arg4=1
 arg5=1
 arg6=5
 
-# Values for arg3
-arg3_values=(10 80 320)
+# # Values for arg3
+# arg3_values=(10 80 320)
 
-# Select arg3 using SLURM_ARRAY_TASK_ID
-arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
-
+# # Select arg3 using SLURM_ARRAY_TASK_ID
+# arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
+arg3=10
 echo "Running with arguments: $arg1 $arg2 $arg3 $arg4 $arg5 $arg6"
 
 julia --project=. src/immigration/analysis.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
