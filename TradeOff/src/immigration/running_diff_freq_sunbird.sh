@@ -27,7 +27,7 @@ arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
 
 echo "Running with arguments: $arg1 $arg2 $arg3 $arg4 $arg5 $arg6"
 
-julia --project=. src/immigration/averages.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+julia --project=. src/immigration/analysis.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
 # max_retries=1
 # retries=0
 
