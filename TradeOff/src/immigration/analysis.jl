@@ -91,6 +91,15 @@ function v_over_t()
         # Use to construct full trajectory C
         GC.gc()
         C = imm_merge_data(ps, traj, T, micd, its_vector)
+        
+        # print sizes for debugging
+        println("----- Run $i diagnostics -----")
+        println("size(C) = ", size(C))
+        println("length(T) = ", length(T))
+        println("total_species = ", length(micd))
+        println("Base.summarysize(C) (GB) = ", Base.summarysize(C) / 1e9)
+        flush(stdout)
+
         # Preallocate vector of microbes
         ms = Array{Microbe, 1}(undef, length(micd))
         # Loop over and find each one
@@ -358,6 +367,11 @@ function v_over_t()
             write(file, "final_time_point", T[end])
         end
         println("Run $i analysed")
+        C = nothing
+        traj = nothing
+        micd = nothing
+        its_vector = nothing
+        GC.gc()
         flush(stdout)
     end
     return (nothing)

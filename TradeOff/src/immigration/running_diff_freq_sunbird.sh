@@ -12,7 +12,7 @@ echo "Working directory: $(pwd)"
 
 
 # Constant values
-arg1=20
+arg1=3
 arg2=1
 arg4=1
 arg5=1
