@@ -27,25 +27,26 @@ arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
 
 echo "Running with arguments: $arg1 $arg2 $arg3 $arg4 $arg5 $arg6"
 
-max_retries=1
-retries=0
+julia --project=. src/immigration/averages.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+# max_retries=1
+# retries=0
 
-while true; do
-    julia --project=. src/immigration/assemble_to_averages.jl \
-        "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+# while true; do
+#     julia --project=. src/immigration/assemble_to_averages.jl \
+#         "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
 
-    if [ $? -eq 0 ]; then
-        echo "Run succeeded."
-        break
-    else
-        retries=$((retries + 1))
-        echo "Error encountered. Attempt $retries of $max_retries."
+#     if [ $? -eq 0 ]; then
+#         echo "Run succeeded."
+#         break
+#     else
+#         retries=$((retries + 1))
+#         echo "Error encountered. Attempt $retries of $max_retries."
 
-        if [ $retries -ge $max_retries ]; then
-            echo "Maximum retries reached."
-            break
-        fi
+#         if [ $retries -ge $max_retries ]; then
+#             echo "Maximum retries reached."
+#             break
+#         fi
 
-        sleep 5
-    fi
-done
+#         sleep 5
+#     fi
+# done
