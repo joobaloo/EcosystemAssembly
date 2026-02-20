@@ -3,7 +3,6 @@
 #SBATCH --mem=70G
 #SBATCH --partition=compute
 #SBATCH --output=job_%A_%a.log
-#SBATCH --array=0-2
 
 cd /lustrehome/home/s.2540740/EcosystemAssembly/TradeOff
 
