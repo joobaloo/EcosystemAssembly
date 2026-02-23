@@ -295,7 +295,14 @@ function imm_full_simulate(ps::TOParameters,
 
     # Then setup and solve the initial problem
     prob = ODEProblem(dyns!, x0, tspan, ms)
-    sol = DifferentialEquations.solve(prob)
+    
+    #sol = DifferentialEquations.solve(prob)
+
+    # Save only 2000 times per immigration event
+    sol = DifferentialEquations.solve(prob;
+    save_everystep = false,
+    saveat = range(tspan[1], tspan[2], length=2000)
+)
 
     # Make containers to store dynamics
     T = sol.t
@@ -422,7 +429,14 @@ function imm_full_simulate(ps::TOParameters,
 
     # Now setup and solve the problem with the new strains
     prob = ODEProblem(dyns!, x0, tspan, ms)
-    sol = DifferentialEquations.solve(prob)
+    
+    #sol = DifferentialEquations.solve(prob)
+
+    # Save only 2000 times per immigration event
+    sol = DifferentialEquations.solve(prob;
+    save_everystep = false,
+    saveat = range(tspan[1], tspan[2], length=2000)
+)
 
     # Update the number of survivors, as new strains have been added
     Ns += nI
