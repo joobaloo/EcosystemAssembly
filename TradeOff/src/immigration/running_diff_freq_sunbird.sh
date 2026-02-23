@@ -12,11 +12,11 @@ echo "Working directory: $(pwd)"
 
 
 # Constant values
-arg1=3
-arg2=1
-arg4=1
-arg5=1
-arg6=5
+arg1=20 # no. repeats
+arg2=1 # simulation type
+arg4=1 # immgration rate per year
+arg5=1 # lower bound of niche size
+arg6=5 # upper bound of niche size
 
 # # Values for arg3
 # arg3_values=(10 80 320)
@@ -26,7 +26,19 @@ arg6=5
 arg3=10
 echo "Running with arguments: $arg1 $arg2 $arg3 $arg4 $arg5 $arg6"
 
+echo "Assembly starting"
+julia --project=. src/immigration/assemble.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+echo "Assembly complete"
+
+echo "Analysis starting"
 julia --project=. src/immigration/analysis.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+echo "Analysis  complete"
+
+
+echo "Averaging starting"
+julia --project=. src/immigration/averages.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+echo "Averaging complete"
+
 # max_retries=1
 # retries=0
 
