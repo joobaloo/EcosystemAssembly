@@ -15,15 +15,15 @@ echo "Working directory: $(pwd)"
 arg1=20 # no. repeats
 arg2=1 # simulation type
 arg4=1 # immgration rate per year
-arg5=1 # lower bound of niche size
-arg6=5 # upper bound of niche size
+arg5=20 # lower bound of niche size
+arg6=25 # upper bound of niche size
 
-# # Values for arg3
-# arg3_values=(10 80 320)
+# Values for arg3
+arg3_values=(10 80 320)
 
 # # Select arg3 using SLURM_ARRAY_TASK_ID
-# arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
-arg3=10
+arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
+
 echo "Running with arguments: $arg1 $arg2 $arg3 $arg4 $arg5 $arg6"
 
 echo "Assembly starting"
