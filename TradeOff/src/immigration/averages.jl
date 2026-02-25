@@ -383,23 +383,47 @@ data_dict = calculate_trajectory_standard_devs!(data_dict, times, final_time_poi
     no_simulations_with_R, no_reactions)
 println("Standard deviations found")
 # Now want to save means and standard deviations
-jldopen(joinpath(data_dir, "RunStats$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants.jld"), "w") do file
-    # Save times
-    write(file, "times", times)
-    # Save number of continuing trajectories
-    write(file, "no_simulations", no_simulations)
-    write(file, "no_viable_simulations", no_viable_simulations)
-    write(file, "no_simulations_with_R", no_simulations_with_R)
-    # Save means and standard deviations
+
+outfile = joinpath(
+    data_dir,
+    "RunStats$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants.jld2"
+)
+
+tmpfile = outfile * ".tmp"
+
+jldopen(tmpfile, "w"; mmaparrays=false) do file
+    file["times"] = times
+    file["no_simulations"] = no_simulations
+    file["no_viable_simulations"] = no_viable_simulations
+    file["no_simulations_with_R"] = no_simulations_with_R
+
     for variable in keys(data_dict)
-        write(file, "mean_$(variable)", data_dict[variable]["means"])
-        write(file, "sd_$(variable)", data_dict[variable]["sds"])
+        file["mean_$(variable)"] = data_dict[variable]["means"]
+        file["sd_$(variable)"]   = data_dict[variable]["sds"]
     end
-    # Finally write all of the final ϕR values out
-    write(file, "all_final_ϕRs", all_final_ϕRs)
+
+    file["all_final_ϕRs"] = all_final_ϕRs
 end
+
+mv(tmpfile, outfile; force=true)
+
+# jldopen(joinpath(data_dir, "RunStats$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants.jld"), "w") do file
+#     # Save times
+#     write(file, "times", times)
+#     # Save number of continuing trajectories
+#     write(file, "no_simulations", no_simulations)
+#     write(file, "no_viable_simulations", no_viable_simulations)
+#     write(file, "no_simulations_with_R", no_simulations_with_R)
+#     # Save means and standard deviations
+#     for variable in keys(data_dict)
+#         write(file, "mean_$(variable)", data_dict[variable]["means"])
+#         write(file, "sd_$(variable)", data_dict[variable]["sds"])
+#     end
+#     # Finally write all of the final ϕR values out
+#     write(file, "all_final_ϕRs", all_final_ϕRs)
+# end
 println("All data saved")
 return (nothing)
 end
 
-@profile calculate_trajectory_stats()
+@time calculate_trajectory_stats()

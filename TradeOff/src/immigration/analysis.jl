@@ -348,34 +348,62 @@ function v_over_t()
             end
         end
 
-        # Now just save the relevant data
-        jldopen(joinpath(data_dir, "AvRun$(i)Data.jld"), "w") do file
-            # Save full time course
-            write(file, "T", T)
-            # Save reaction data
-            write(file, "species_per_reac_class", species_per_reac_class)
-            write(file, "viable_species_per_reac_class", viable_species_per_reac_class)
-            write(file, "average_η_per_reac_class", average_η_per_reac_class)
-            write(file, "average_KS_per_reac_class", average_KS_per_reac_class)
-            # Save the other quantities
-            write(file, "surviving_species", surviving_species)
-            write(file, "viable_species", viable_species)
-            write(file, "total_population", total_population)
-            write(file, "total_biomass_of_viable_species", total_biomass_of_viable_species)
-            write(file, "shannon_diversity", shannon_diversity)
-            write(file, "no_substrates", no_substrates)
-            write(file, "average_η", average_η)
-            write(file, "average_no_reac_steps", average_no_reac_steps)
-            write(file, "average_ω", average_ω)
-            write(file, "average_ΔG", average_ΔG)
-            write(file, "final_ϕR", final_ϕR)
-            # Save EUE data
-            write(file, "species_EUEs", species_EUEs)
-            write(file, "community_EUE", weighted_community_EUE)
-            write(file, "median_community_EUE", median_community_EUE)
-            # Finally save final time to help with benchmarking
-            write(file, "final_time_point", T[end])
+        outfile = joinpath(data_dir, "AvRun$(i)Data.jld2")
+        tmpfile = outfile * ".tmp"
+
+        jldopen(tmpfile, "w"; mmaparrays=false) do file
+            file["T"] = T
+            file["species_per_reac_class"] = species_per_reac_class
+            file["viable_species_per_reac_class"] = viable_species_per_reac_class
+            file["average_η_per_reac_class"] = average_η_per_reac_class
+            file["average_KS_per_reac_class"] = average_KS_per_reac_class
+            file["surviving_species"] = surviving_species
+            file["viable_species"] = viable_species
+            file["total_population"] = total_population
+            file["total_biomass_of_viable_species"] = total_biomass_of_viable_species
+            file["shannon_diversity"] = shannon_diversity
+            file["no_substrates"] = no_substrates
+            file["average_η"] = average_η
+            file["average_no_reac_steps"] = average_no_reac_steps
+            file["average_ω"] = average_ω
+            file["average_ΔG"] = average_ΔG
+            file["final_ϕR"] = final_ϕR
+            file["species_EUEs"] = species_EUEs
+            file["community_EUE"] = weighted_community_EUE
+            file["median_community_EUE"] = median_community_EUE
+            file["final_time_point"] = T[end]
         end
+
+        mv(tmpfile, outfile; force=true)
+        
+        # # Now just save the relevant data
+        # jldopen(joinpath(data_dir, "AvRun$(i)Data.jld"), "w") do file
+        #     # Save full time course
+        #     write(file, "T", T)
+        #     # Save reaction data
+        #     write(file, "species_per_reac_class", species_per_reac_class)
+        #     write(file, "viable_species_per_reac_class", viable_species_per_reac_class)
+        #     write(file, "average_η_per_reac_class", average_η_per_reac_class)
+        #     write(file, "average_KS_per_reac_class", average_KS_per_reac_class)
+        #     # Save the other quantities
+        #     write(file, "surviving_species", surviving_species)
+        #     write(file, "viable_species", viable_species)
+        #     write(file, "total_population", total_population)
+        #     write(file, "total_biomass_of_viable_species", total_biomass_of_viable_species)
+        #     write(file, "shannon_diversity", shannon_diversity)
+        #     write(file, "no_substrates", no_substrates)
+        #     write(file, "average_η", average_η)
+        #     write(file, "average_no_reac_steps", average_no_reac_steps)
+        #     write(file, "average_ω", average_ω)
+        #     write(file, "average_ΔG", average_ΔG)
+        #     write(file, "final_ϕR", final_ϕR)
+        #     # Save EUE data
+        #     write(file, "species_EUEs", species_EUEs)
+        #     write(file, "community_EUE", weighted_community_EUE)
+        #     write(file, "median_community_EUE", median_community_EUE)
+        #     # Finally save final time to help with benchmarking
+        #     write(file, "final_time_point", T[end])
+        # end
         println("Run $i analysed")
         C = nothing
         traj = nothing
@@ -387,4 +415,4 @@ function v_over_t()
     return (nothing)
 end
 
-@profile v_over_t()
+@time v_over_t()
