@@ -229,9 +229,13 @@ function imm_full_simulate(ps::TOParameters,
     mpl::Array{Microbe, 1},
     Ni::Int64,
     mT::Float64,
-    total_time::Float64, # Total simulation time
+    total_time::Float64, # Total simulation time with immigration
     num_immigrations::Int64, # Number of immigration events
     num_immigrants::Int64) # Number of immigrants per event
+
+    # Define total number of save points
+    total_save_points = 500000
+    final_time = total_time * 1.3
 
     # Make container to store microbial data
     micd = Array{MicData}(undef, Ni)
@@ -297,12 +301,16 @@ function imm_full_simulate(ps::TOParameters,
     prob = ODEProblem(dyns!, x0, tspan, ms)
     
     #sol = DifferentialEquations.solve(prob)
+   interval_length = tspan[2] - tspan[1]
 
-    # Save only 2000 times per immigration event
+    n_save = max(2, Int(round(
+        total_save_points * interval_length / final_time
+    )))
+
     sol = DifferentialEquations.solve(prob;
-    save_everystep = false,
-    saveat = range(tspan[1], tspan[2], length=2000)
-)
+        save_everystep = false,
+        saveat = range(tspan[1], tspan[2], length=n_save)
+    )
 
     # Make containers to store dynamics
     T = sol.t
@@ -398,8 +406,8 @@ function imm_full_simulate(ps::TOParameters,
         # Use previous immigration time to define the time step
         tspan = (its[i], its[i + 1])
     else
-        # At last step just integrate for five times the average time, so that dynamics settle
-        tf = total_time + 1 * mT
+        # At last step just integrate for 30% longer without immigration to let dynamics settle
+        tf = total_time * 1.3
         # Use previous immigration time to define the time span
         tspan = (its[i], tf)
     end
@@ -432,11 +440,16 @@ function imm_full_simulate(ps::TOParameters,
     
     #sol = DifferentialEquations.solve(prob)
 
-    # Save only 2000 times per immigration event
+    interval_length = tspan[2] - tspan[1]
+
+    n_save = max(2, Int(round(
+        total_save_points * interval_length / final_time
+    )))
+
     sol = DifferentialEquations.solve(prob;
-    save_everystep = false,
-    saveat = range(tspan[1], tspan[2], length=2000)
-)
+        save_everystep = false,
+        saveat = range(tspan[1], tspan[2], length=n_save)
+    )
 
     # Update the number of survivors, as new strains have been added
     Ns += nI
