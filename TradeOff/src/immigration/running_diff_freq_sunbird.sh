@@ -11,13 +11,12 @@ cd /lustrehome/home/s.2540740/EcosystemAssembly/TradeOff
 echo "Running on: $(hostname)"
 echo "Working directory: $(pwd)"
 
-
 # Constant values
 arg1=20 # no. repeats
 arg2=1 # simulation type
 arg4=1 # immgration rate per year
-arg5=20 # lower bound of niche size
-arg6=25 # upper bound of niche size
+arg5=1 # lower bound of niche size
+arg6=5 # upper bound of niche size
 
 # Values for arg3
 arg3_values=(10 80 320)
