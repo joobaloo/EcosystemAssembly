@@ -26,13 +26,13 @@ arg3=${arg3_values[$SLURM_ARRAY_TASK_ID]}
 
 echo "Running with arguments: $arg1 $arg2 $arg3 $arg4 $arg5 $arg6"
 
-echo "Assembly starting"
-julia --project=. src/immigration/assemble.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
-echo "Assembly complete"
+# echo "Assembly starting"
+# julia --project=. src/immigration/assemble.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+# echo "Assembly complete"
 
-echo "Analysis starting"
-julia --project=. src/immigration/analysis.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
-echo "Analysis  complete"
+# echo "Analysis starting"
+# julia --project=. src/immigration/analysis.jl "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6"
+# echo "Analysis  complete"
 
 
 echo "Averaging starting"
