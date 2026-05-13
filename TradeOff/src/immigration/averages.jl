@@ -282,7 +282,7 @@ data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)
 # Loop over number of repeats
 for i in 1:repeats
     # Load in relevant output file
-    averages_file = joinpath(data_dir, "AvRun$(i)Data.jld")
+    averages_file = joinpath(data_dir, "AvRun$(i)Data.jld2")
     if ~isfile(averages_file)
         error("$(immigration_rate)/year)_rate_$(num_immigrants)immigrants run $(i) is missing a variables file")
     end
@@ -330,7 +330,7 @@ all_final_ϕRs = Float64[]
 # Loop over number of trajectories (to minimise the number of reads in)
 for i in 1:repeats
     # Load in relevant output file
-    averages_file = joinpath(data_dir, "AvRun$(i)Data.jld")
+    averages_file = joinpath(data_dir, "AvRun$(i)Data.jld2")
     if ~isfile(averages_file)
         error("$(immigration_rate)_a_year_rate_$(num_immigrants)immigrants run $(rN) is missing a variables file")
     end
