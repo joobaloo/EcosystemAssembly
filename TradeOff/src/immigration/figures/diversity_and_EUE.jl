@@ -21,7 +21,8 @@ function no_species_vs_EUE_plot()
     println("Compiled and input read in!")
     flush(stdout)
 
-    frequencies = [10, 20, 40, 80, 160, 320]
+    #frequencies = [10, 20, 40, 80, 160, 320]
+    frequencies = [10, 80, 320]
 
     # Open the JLD file and load the time data while checking it exists
     data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
@@ -107,7 +108,8 @@ function shannon_diversity_vs_EUE_plot()
     println("Compiled and input read in!")
     flush(stdout)
 
-    frequencies = [10, 20, 40, 80, 160, 320]
+    #frequencies = [10, 20, 40, 80, 160, 320]
+    frequencies = [10, 80, 320]
 
     # Open the JLD file and load the time data while checking it exists
     data_dir = joinpath(pwd(), "Output", "niche_size$(rl)_$(ru)", "$(num_immigrants)immigrants", "$(frequencies[1])_a_year_rate")
